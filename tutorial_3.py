@@ -76,36 +76,43 @@ def callback(data):
     # Set up the detector with default parameters.
     params = cv2.SimpleBlobDetector_Params()
 
-    #Set the Parameters Correctly
-    # Filter by area (value for area here defines the pixel value)
-    params.filterByArea = True
-    params.minArea = 100
-    
-    # Filter by circularity
-    params.filterByCircularity = True
-    params.minCircularity = 0.75
-    
-    # Filter by convexity
-    params.filterByConvexity = True
-    params.minConvexity = 0.2
-        
-    # Filter by inertia ratio
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.01
+    #Change the parameters
+    # Detect blobs by color 
+    params.filterByColor= True
+    params.blobColor = 255  # Set to 255 for white color
+    params.filterByArea = False
+    params.filterByCircularity = False
+    params.filterByConvexity = False
+    params.filterByInertia = False
 
-
+    #Create Blob Detector
     blobs_detector = cv2.SimpleBlobDetector_create(params)
  
     # Detect blobs.
- 
     blobs_in_image = blobs_detector.detect(cv_dilateimage)
  
     # Draw detected blobs as red circles.
-    # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
-    image_with_blobs = cv2.drawKeypoints(cv_dilateimage, blobs_in_image, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    
+    #image_with_blobs = cv2.drawKeypoints(cv_dilateimage, blobs_in_image, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+    #Find the largest blob by area 
+    largest_blob = None
+    max_area = 0
+    for blob in blobs_in_image:
+        if blob.size > max_area:
+            largest_blob = blob
+            max_area = blob.size
+
+    # Calculate the mass center of the largest blob
+    if largest_blob is not None:
+        x, y = map(int, largest_blob.pt)
+        # Print on the cmd 
+        print("Mass Center of the Largest Blob: X = {}, Y = {}".format(x,y))
+
+    # Draw the mass center 
+    cv2.circle(cv_dilateimage, (x, y), 5, (0,255,0), 1)
+
     # Display Image with Blob Detection 
-    cv2.imshow("Blob extraction", image_with_blobs)
+    cv2.imshow("Blob extraction", cv_dilateimage)
     cv2.waitKey(1)
 
 
@@ -128,17 +135,17 @@ def callback_bottom(data):
     cv_blurredgrayimage = cv2.GaussianBlur(cv_grayimage, (9, 9), 2)
 
     # Display Blurred GrayScale Image
-    cv2.imshow('Blureed grayscale',cv_blurredgrayimage)
+    cv2.imshow('Blurred grayscale',cv_blurredgrayimage)
     cv2.waitKey(1)
 
     # Circle Detection 
     circles_detection = cv2.HoughCircles(cv_blurredgrayimage, cv2.HOUGH_GRADIENT,
         dp=1,
         minDist=20,
-        param1=50,
+        param1=100,
         param2=30,
-        minRadius=10,
-        maxRadius=200,
+        minRadius=1,
+        maxRadius=30,
     )
 
     #Draw the Circles and Center
@@ -158,6 +165,7 @@ def callback_bottom(data):
 
         # Display Image with Detected Circle
         cv2.imshow("Detected Circles", cv_image)
+        cv2.waitKey(1)
 
 def listener():
 
@@ -171,9 +179,9 @@ def listener():
     #Callback is for the Top Camera
     #Callback_bottom is for the Bottom Camera
     
-    #rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, callback)
+    rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, callback)
 
-    rospy.Subscriber("/nao_robot/camera/bottom/camera/image_raw", Image, callback_bottom)
+    #rospy.Subscriber("/nao_robot/camera/bottom/camera/image_raw", Image, callback_bottom)
 
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()

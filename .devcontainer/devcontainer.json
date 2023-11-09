@@ -1,0 +1,43 @@
+{
+	"name": "refactor_ws",
+	"dockerFile": "Dockerfile",
+	"containerEnv" : {
+		"DISPLAY" : "${localEnv:DISPLAY}",
+		"QT_X11_NO_MITSHM" : "1"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-iot.vscode-ros"
+			]
+		}
+	},
+	"runArgs": [
+		"--network=host"
+	],
+	"mounts": [
+		//{ 
+		//	"source": "/dev/dri", 
+		//	"target": "/dev/dri",
+		//	"type": "bind"
+		//},
+		{ 
+			"source": "/tmp/.X11-unix", 
+			"target": "/tmp/.X11-unix",
+			"type": "bind"
+		},
+		//{ 
+		//	"source": "/dev", 
+		//	"target": "/dev",
+		//	"type": "bind"
+		//}
+		// ,
+		// { 
+		// 	"source": "/home/${localEnv:USER}/scripts", 
+		// 	"target": "/scripts",
+		// 	"type": "bind"
+		// }
+	]
+
+}

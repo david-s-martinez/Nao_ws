@@ -1,11 +1,22 @@
 #!/usr/bin/env python
+
+
+# Team C Group Members:
+# Efe Oztufan
+# David Sebastian Martinez Lema
+# Jorje Fabrizio Villasante Meza
+# Maria Luna Ghanime
+
+
 import rospy
 # from std_msgs.msg import String
 from sensor_msgs.msg import Image
-import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 from cv_bridge import CvBridge
+import numpy as np
+#import matplotlib.pyplot as plt
+
+
 
 def backprojection(cv_image, hist_normalized, mask):
     hsv_frame = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
@@ -19,7 +30,15 @@ def backprojection(cv_image, hist_normalized, mask):
     tres = np.hstack((thresh,res))
     return res, tres, back_proj_filt
 
+backp = False
+backm = False
+backc = False
+backo = False
+
+
+
 def callback(data):
+    global backp, backm, backc, backo
 
     #rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
     bridge = CvBridge()
@@ -28,24 +47,25 @@ def callback(data):
     #cv2.rectangle(cv_image, (0, 0), (100, 100), color=(255,0,0), thickness=2)
     cv2.imshow('Original Image',cv_image)
     key = cv2.waitKey(1)
+
+    #Task 5: HSV, Threshold, Mask 
     hsv_frame = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
     h, s, _ = cv2.split(hsv_frame)
     roi = (155, 86, 54, 57)      # Modify accordingly
 
-    thresh = 110  # Modify if needed
-    _, mask = cv2.threshold(s, thresh, 255, cv2.THRESH_BINARY)
 
-
-    #Press s to capture an image 
+    #Press s to capFalseture an image 
     if key == ord('s'):
         cv2.imwrite('templateImg.jpg', cv_image)
+        # saved_image = cv2.imread('templateImg.jpg')
     if key == ord('r'):
         #Read the image
         saved_image = cv2.imread('templateImg.jpg')
+        print("Image shape:", saved_image.shape)
         
         cv2.imshow('Processed Image',saved_image)
-        roi = cv2.selectROI(saved_image)
-        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+
         roi_cropped = saved_image[int(roi[1]):int(roi[1] + roi[3]), int(roi[0]):int(roi[0] + roi[2])]
         roi_hsv = cv2.cvtColor(roi_cropped, cv2.COLOR_BGR2HSV)
         roi_h, roi_s, _ = cv2.split(roi_hsv)
@@ -54,23 +74,85 @@ def callback(data):
         _, roi_mask = cv2.threshold(roi_s, thresh, 255, cv2.THRESH_BINARY)
 
         cv2.imshow("ROI",roi_mask)
-        cv2.waitKey(0)
+
+        # Display the image 
+        cv2.imshow('Region of Interest', roi_cropped)
+        cv2.waitKey(1)
+
+        # Make a Screenshot of it 
+        cv2.imwrite('roi_screenshot.jpg', roi_cropped)
+
+
+    #Task 4
+    if key == ord('t'):
+        #Read the image
+        roi_image = cv2.imread('roi_screenshot.jpg')
+        print("Image shape:", roi_image.shape)
+
+        #Display Image
+        cv2.imshow('ROI Image',roi_image)
+        cv2.waitKey(1)
+
+        #ROI to HSV 
+        roi_hsv = cv2.cvtColor(roi_image, cv2.COLOR_BGR2HSV)
+                
+        cv2.imshow('HSV Image',roi_hsv)
+        cv2.waitKey(1)
+
+        #Split the Image
+        roi_h, roi_s, _ = cv2.split(roi_hsv)
+
+
+        #Threshold to mask out the lref_gray, p0ow saturated pixels
+        threshold = 120  
+        _, roi_mask = cv2.threshold(roi_s, threshold, 255, cv2.THRESH_BINARY)
+        cv2.imshow("ROI Mask",roi_mask)
+        cv2.waitKey(1)
+
+
+        #Compute the 1D Histogram and Normalize it 
 
         roi_hist = cv2.calcHist([roi_h],[0], roi_mask, [180], [0, 180] )
         r_hist_norm = roi_hist.copy()
         cv2.normalize(roi_hist,r_hist_norm,0,255,cv2.NORM_MINMAX)
         np.save("norm_histo.npy", r_hist_norm)
-        # cv2.destroyAllWindows()
+
+        # plt.figure((12,6))
+
+        # plt.subplot(1,2,1)
+        # plt.plot(roi_hist)
+        # plt.title('ROI Histogram')
+
+        # plt.subplot(1,2,2)
+        # plt.plot(roi_hist)
+        # plt.title('ROI Normalized Histogram')
     
+    thresh = 110  # Modify if needed
+    _, mask = cv2.threshold(s, thresh, 255, cv2.THRESH_BINARY)
+    # tres = norm_hist(cv_image,mask)
+
+    # Task 5                # Press b to see the backprojection and b again to stop seeing it
     if key == ord('b'):     # BackProject
+        backp = not backp
+        cv2.destroyAllWindows()
+
+
+    if backp:
+        # norm_hist( cv_image, mask)
         hist_normalized = np.load("norm_histo.npy")
         _, tres, _ = backprojection(cv_image, hist_normalized, mask)
-
         cv2.imshow("Back Projection", tres)
         cv2.waitKey(1)
-        # cv2.destroyAllWindows()
 
+# def norm_hist(cv_image,mask ):
+    
+    # Task 6                # Press m to see the backprojection and m again to stop seeing it
     if key == ord('m'):     # MeanShift
+        backm = not backm
+        cv2.destroyAllWindows()
+
+
+    if backm:
         hist_normalized = np.load("norm_histo.npy")
         res, _, back_proj_filt = backprojection(cv_image, hist_normalized, mask)
 
@@ -83,10 +165,16 @@ def callback(data):
 
         tres = np.hstack((cv_image,res))
 
-        cv2.imshow("Back Projection", tres)
+        cv2.imshow("Mean-shift Back Projection", tres)
         # cv2.destroyAllWindows()
 
+    # Task 7                # Press c to see the backprojection and c again to stop seeing it
     if key == ord('c'):     # CamShift
+        backc = not backc
+        cv2.destroyAllWindows()
+
+
+    if backc:
         hist_normalized = np.load("norm_histo.npy")
         res, _, back_proj_filt = backprojection(cv_image, hist_normalized, mask)
 
@@ -102,19 +190,30 @@ def callback(data):
 
         cv2.imshow("Back Projection", tres)
         # cv2.destroyAllWindows()
-        
+
+    # Task 9                # Press o to see the OpticalFlow and o again to stop seeing it
     if key == ord('o'):     # OpticalFlow
+        backo = not backo
+        cv2.destroyAllWindows()
+    
+    if backo:
         # Create a mask image for drawing purposes
         mask = np.zeros_like(cv_image)
 
         try:
             p0 = np.load("p0.npy")
             ref_gray = cv2.imread('ref_gray.jpg')
-        except FileNotFoundError:
+            ref_gray = cv2.cvtColor(ref_gray, cv2.COLOR_BGR2GRAY)
+
+        except:
             ref_gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
-            p0 = cv2.goodFeaturesToTrack(ref_gray, maxCorners=50, qualityLevel=0.01, minDistance=5)
+            p0 = cv2.goodFeaturesToTrack(ref_gray, maxCorners=100, qualityLevel=0.3, minDistance=7)
+            # np.save("p0.npy", p0)
+            # cv2.imwrite('ref_gray.jpg', frame_gray)
 
         frame_gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        # print(ref_gray.shape)
+        # print(frame_gray.shape)
 
          # Calculate optical flow using Lucas-Kanade method
         p1, st, _ = cv2.calcOpticalFlowPyrLK(ref_gray, frame_gray, p0, None)
@@ -138,8 +237,12 @@ def callback(data):
         # cv2.destroyAllWindows()
 
 
-    if cv2.waitKey(1) & 0xFF == 27:
-            cv2.destroyAllWindows()
+        
+        
+
+
+
+
 
 
 def listener():
@@ -157,4 +260,5 @@ def listener():
     rospy.spin()
 
 if __name__ == '__main__':
+
     listener()

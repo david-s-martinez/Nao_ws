@@ -7,7 +7,7 @@
 # Jorje Fabrizio Villasante Meza
 # Maria Luna Ghanime
 
-
+import os
 import rospy
 # from std_msgs.msg import String
 from sensor_msgs.msg import Image
@@ -16,6 +16,8 @@ from cv_bridge import CvBridge
 import numpy as np
 import math
 #import matplotlib.pyplot as plt
+
+#Task 10 ArUco Detection 
 class ArucoDetection:
     def __init__(self, marker_size= 4,tag_scaling = 1, box_z = 3.0, tag_dict = cv2.aruco.DICT_ARUCO_ORIGINAL):
         """
@@ -124,11 +126,13 @@ backp = False
 backm = False
 backc = False
 backo = False
-
+backa = False
 
 
 def callback(data):
-    global backp, backm, backc, backo
+    global backp, backm, backc, backo, backa
+    
+    #Used in Task 10 ArUco Detector 
     ad = ArucoDetection()
     #rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
     bridge = CvBridge()
@@ -137,9 +141,7 @@ def callback(data):
     #cv2.rectangle(cv_image, (0, 0), (100, 100), color=(255,0,0), thickness=2)
     cv2.imshow('Original Image',cv_image)
     key = cv2.waitKey(1)
-    aruco_img = ad.detect_tags_3D(cv_image.copy())
-    cv2.imshow('3D Marker Position',aruco_img)
-    key = cv2.waitKey(1)
+   
     #Task 5: HSV, Threshold, Mask 
     hsv_frame = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
     h, s, _ = cv2.split(hsv_frame)
@@ -159,6 +161,7 @@ def callback(data):
         cv2.waitKey(1)
 
         roi_cropped = saved_image[int(roi[1]):int(roi[1] + roi[3]), int(roi[0]):int(roi[0] + roi[2])]
+
         roi_hsv = cv2.cvtColor(roi_cropped, cv2.COLOR_BGR2HSV)
         roi_h, roi_s, _ = cv2.split(roi_hsv)
         
@@ -283,7 +286,8 @@ def callback(data):
         cv2.imshow("Back Projection", tres)
         # cv2.destroyAllWindows()
 
-    # Task 9                # Press o to see the OpticalFlow and o again to stop seeing it
+
+      # Task 9                # Press o to see the OpticalFlow and o again to stop seeing it
     if key == ord('o'):     # OpticalFlow
         backo = not backo
         cv2.destroyAllWindows()
@@ -329,10 +333,19 @@ def callback(data):
         # cv2.destroyAllWindows()
 
 
-        
-        
 
-
+    # Task 10               # Press a to detect the ArUco Marker and a again to stop it
+    if key == ord('a'):     # OpticalFlow
+        backa = not backa
+        cv2.destroyAllWindows()
+    
+    if backa:
+        # Attention the window gets sometimes displayed behind the original image window 
+        aruco_img = ad.detect_tags_3D(cv_image.copy())
+        cv2.imshow('3D Marker Position',aruco_img)
+        key = cv2.waitKey(1)
+        
+    
 
 
 
@@ -352,5 +365,8 @@ def listener():
     rospy.spin()
 
 if __name__ == '__main__':
-
+    if os.path.exists("p0.npy"):
+        os.remove("p0.npy")
+    if os.path.exists("ref_gray.jpg"):
+        os.remove("ref_gray.jpg")
     listener()

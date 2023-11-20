@@ -1,0 +1,7 @@
+#CREATE request parameters
+string name
+float64 angle
+float64 speed
+--------------------------------
+#CREATE response parameters
+bool status

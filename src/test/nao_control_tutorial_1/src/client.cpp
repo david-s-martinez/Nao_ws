@@ -5,7 +5,9 @@
 #include <ros/ros.h>
 #include "sensor_msgs/JointState.h"
 #include "nao_control_tutorial_1/MoveJoints.h"
+#include "nao_control_tutorial_1/InterpolationJoints.h"
 #include <string.h>
+
 using namespace std;
 
 class Nao_control
@@ -23,6 +25,7 @@ public:
 
         // TODO: Initialize the service client
         move_joints_client = nh_.serviceClient<nao_control_tutorial_1::MoveJoints>("move_joints_tutorial");
+        move_joints_interpolation_client = nh_.serviceClient<nao_control_tutorial_1::InterpolationJoints>("move_joints_tutorial_interpolation");
     }
 
     ~Nao_control()
@@ -50,8 +53,30 @@ public:
         move_joints_client.call(srv);
     }
 
+        // Function to call move_joints_tutorial_interpolation service
+    bool callMoveJointsInterpolationService(const std::string joint_names[1], double anglesList[5], double time_assigned[5], bool isAbsolute)
+    {
+        // Create the service message
+        nao_control_tutorial_1::InterpolationJoints srv;
+        for (size_t i = 0; i < 1; ++i)
+        {
+            srv.request.joint_names[i] = joint_names[i];
+        }
+
+        for (size_t i = 0; i < 5; ++i)
+        {
+            srv.request.anglesList[i] = anglesList[i];
+            srv.request.time_assigned[i] = time_assigned[i];
+        }
+
+        srv.request.isAbsolute = isAbsolute;
+        // Call the service
+        move_joints_interpolation_client.call(srv);
+    }
+
 private:
     // Service client for move_joints_tutorial service
+    ros::ServiceClient move_joints_interpolation_client;
     ros::ServiceClient move_joints_client;
 };
 
@@ -59,6 +84,16 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "nao_tutorial_control_1");
     Nao_control ic;
+
+    //Exercise 2
+    std::string joint_names[1] = {"HeadYaw"};
+    double anglesList[5] = {90.0, -90.0, 90.0, -90.0, 0.0};
+    double time_assigned[5] = {1.0, 2.0, 3.0, 4.0, 5.0};
+    bool isAbsolute = true;
+
+    ic.callMoveJointsInterpolationService(joint_names, anglesList, time_assigned, isAbsolute);
+    ros::Duration(1.0).sleep();  // Sleep for 1 second (adjust as needed)
+    // Exercise 1 
     for (int i = 0; i < 3; ++i)
     {
         // Call the service with different angles (-90.0, -45.0, 0.0)

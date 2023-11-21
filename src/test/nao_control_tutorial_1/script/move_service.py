@@ -6,16 +6,46 @@ import sys
 from naoqi import ALProxy
 from nao_control_tutorial_1.srv import MoveJoints
 motionProxy = 0
+from std_srvs.srv import Empty  # Import the appropriate service message type
+
+def call_enable_body_stiffness_service():
+    rospy.wait_for_service('/body_stiffness/enable')  # Replace with the actual service name
+    try:
+        # Create a proxy to call the service
+        enable_body_stiffness_proxy = rospy.ServiceProxy('/body_stiffness/enable', Empty)
+        
+        # Call the service with an empty request
+        response = enable_body_stiffness_proxy()
+        
+        # Process the response (empty for this service)
+        print("Enabled")
+    except rospy.ServiceException as e:
+        print("Service call failed:", str(e))
+
+def call_disable_body_stiffness_service():
+    rospy.wait_for_service('/body_stiffness/disable')  # Replace with the actual service name
+    try:
+        # Create a proxy to call the service
+        disable_body_stiffness_proxy = rospy.ServiceProxy('/body_stiffness/disable', Empty)
+        
+        # Call the service with an empty request
+        response = disable_body_stiffness_proxy()
+        
+        # Process the response (empty for this service)
+        print("Disabled")
+    except rospy.ServiceException as e:
+        print("Service call failed:", str(e))
+
 #TODO: create service handler
 class JointControl(object):
-    def __init__(self, robotIP = "10.152.246.118", PORT = 9559):
-        self.motionProxy = ALProxy("ALMotion", robotIP, PORT) 
-        self.motionProxy.setStiffnesses("Head", 1.0)
+    def __init__(self, robotIP = "10.152.246.180", PORT = 9559):
+        self.motionProxy = ALProxy("ALMotion", robotIP, PORT)
+        call_enable_body_stiffness_service()
         self.move_joints_server()
 
     def handle_move_joints(self, req):
-        # print("Returning [%s + %s = %s]"%(req.a, req.b, (req.a + req.b)))
         try:
+            time.sleep(1.0)
             # self.motionProxy.setStiffnesses("Head", 1.0)
             name = req.name
             angle = req.angle*almath.TO_RAD
@@ -24,6 +54,7 @@ class JointControl(object):
             print("Moving joint: " + name)
             time.sleep(3.0)
             # self.motionProxy.setStiffnesses("Head", 0.0)
+            time.sleep(1.0)
             return True
         except Exception as e:
             print(e)

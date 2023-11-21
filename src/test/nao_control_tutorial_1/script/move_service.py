@@ -5,6 +5,7 @@ import almath
 import sys
 from naoqi import ALProxy
 from nao_control_tutorial_1.srv import MoveJoints
+from nao_control_tutorial_1.srv import InterpolationJoints
 motionProxy = 0
 from std_srvs.srv import Empty  # Import the appropriate service message type
 
@@ -60,10 +61,32 @@ class JointControl(object):
             print(e)
             print("Move joints failed")
             return False
+        
+    def handle_interpolation_joints(self, req):
+        try:
+            time.sleep(1.0)
+            # self.motionProxy.setStiffnesses("Head", 1.0)
+            joint_names = req.joint_names
+            anglesList = [angle*almath.TO_RAD for angle in req.anglesList]
+            time_assigned = req.time_assigned
+            isAbsolute =req.isAbsolute
+            self.motionProxy.angleInterpolation(joint_names, anglesList, time_assigned, isAbsolute)
+            print("Moving joint: " + str(joint_names))
+            time.sleep(3.0)
+            # self.motionProxy.setStiffnesses("Head", 0.0)
+            time.sleep(1.0)
+            return True
+        except Exception as e:
+            print(e)
+            print("Move joints failed")
+            return False
+        
+        
 
     def move_joints_server(self):
         rospy.init_node('move_joints_server')
-        s = rospy.Service('move_joints_tutorial', MoveJoints, self.handle_move_joints)
+        service1 = rospy.Service('move_joints_tutorial', MoveJoints, self.handle_move_joints)
+        service2 = rospy.Service('move_joints_tutorial_interpolation', InterpolationJoints, self.handle_interpolation_joints)
         print("Ready to move joints.")
         rospy.spin()
 

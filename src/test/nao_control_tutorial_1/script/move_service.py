@@ -5,6 +5,7 @@ import almath
 import sys
 from naoqi import ALProxy
 from nao_control_tutorial_1.srv import MoveJoints
+# from nao_control_tutorial_1.srv import InterpolationMultiJoints
 from nao_control_tutorial_1.srv import InterpolationJoints
 from nao_control_tutorial_1.srv import TrackAruco
 motionProxy = 0
@@ -16,7 +17,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
 class ArucoDetection:
-    def __init__(self, marker_size= 4,tag_scaling = 1, box_z = 3.0, tag_dict = cv2.aruco.DICT_ARUCO_ORIGINAL):
+    def __init__(self, marker_size= 8.7,tag_scaling = 0.5, box_z = 3.0, tag_dict = cv2.aruco.DICT_ARUCO_ORIGINAL):
         """
         ArucoDetection object constructor. Initializes data containers.
         camera matrix
@@ -81,6 +82,8 @@ class ArucoDetection:
     def detect_tags_3D(self, frame):
         self.box_vertices = {}
         self.box_verts_update = {}
+        self.rot_vecs = []
+        self.tran_vecs = []
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
         corners, ids, rejected = cv2.aruco.detectMarkers(
                                             gray, 
@@ -93,7 +96,7 @@ class ArucoDetection:
         if ids is not None :
             poses = cv2.aruco.estimatePoseSingleMarkers(
                                                 corners, 
-                                                self.marker_size, 
+                                                self.marker_size*self.tag_scaling, 
                                                 self.camera_matrix, 
                                                 self.camera_distortion)
 
@@ -105,7 +108,8 @@ class ArucoDetection:
                 rvec , tvec = self.rot_vecs[i][0], self.tran_vecs[i][0]
                 cv2.aruco.drawAxis(frame, self.camera_matrix, self.camera_distortion, rvec, tvec,5)
                 # self.draw_tag_pose(frame, rvec, tvec, tag_id)
-        return frame
+
+        return frame, self.tran_vecs, corners
 
 def call_enable_body_stiffness_service():
     rospy.wait_for_service('/body_stiffness/enable')  # Replace with the actual service name
@@ -162,8 +166,43 @@ class JointControl(object):
         aruco_det = ArucoDetection()
         bridge = CvBridge()
         cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
-        frame = aruco_det.detect_tags_3D(cv_image)
+        frame, tran_vecs, corners = aruco_det.detect_tags_3D(cv_image)
+        print(len(corners),corners)
+        if len(tran_vecs) > 0:
+            tran_vec = tran_vecs[0][0]
+            tran_vec = [tran_vec[0],tran_vec[1], tran_vec[2]]
+            corner = corners[0][0]
+            corner = corner.reshape((4, 2))
+            (top_left, top_right, bottom_right, bottom_left) = corner 
+            top_left = (int(top_left[0]), int(top_left[1]))
+            top_right = (int(top_right[0]), int(top_right[1]))
+            bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
+            bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
 
+            # Compute centroid
+            cX = int((top_left[0] + bottom_right[0]) / 2.0)
+            cY = int((top_left[1] + bottom_right[1]) / 2.0)
+
+            # Calculate the center of the image 
+            image_width, image_height  = frame.shape[:2]
+            image_xcenter = image_width / 2.0 
+            image_ycenter = image_height / 2.0
+
+            #Calculate the displacement between the centroid of the ArUco and the center of the image
+            dx = cX - image_xcenter
+            dy = cY - image_ycenter 
+
+
+            # Find the angle using the horizontal and vertical fov mapping (Nao's documentation)
+
+            yaw_angle = (dx/image_width) * 60.9
+            pitch_angle = (dy / image_height ) * 47.6
+            names = [ 'HeadYaw', 'HeadPitch']
+            angles = [yaw_angle*almath.TO_RAD, pitch_angle*almath.TO_RAD]
+            fractionMaxSpeed = 0.1
+            self.motionProxy.setAngles(names, angles, fractionMaxSpeed)
+            
+            print(tran_vec)
         #cv2.rectangle(cv_image, (0, 0), (100, 100), color=(255,0,0), thickness=2)
         cv2.imshow('Original Image',cv_image)
         cv2.imshow('Track Image',frame)
@@ -201,6 +240,24 @@ class JointControl(object):
             print(e)
             print("Move joints failed")
             return False
+    def handle_interpolation_multi_joints(self, req):
+        try:
+            time.sleep(1.0)
+            # self.motionProxy.setStiffnesses("Head", 1.0)
+            joint_names = req.joint_names
+            anglesList = [angle*almath.TO_RAD for angle in req.anglesList]
+            time_assigned = req.time_assigned
+            isAbsolute =req.isAbsolute
+            self.motionProxy.angleInterpolation(joint_names, anglesList, time_assigned, isAbsolute)
+            print("Moving joint: " + str(joint_names))
+            time.sleep(3.0)
+            # self.motionProxy.setStiffnesses("Head", 0.0)
+            time.sleep(1.0)
+            return True
+        except Exception as e:
+            print(e)
+            print("Move joints failed")
+            return False
         
         
 
@@ -208,7 +265,8 @@ class JointControl(object):
         rospy.init_node('move_joints_server')
         service1 = rospy.Service('move_joints_tutorial', MoveJoints, self.handle_move_joints)
         service2 = rospy.Service('move_joints_tutorial_interpolation', InterpolationJoints, self.handle_interpolation_joints)
-        service3 = rospy.Service('track_aruco', TrackAruco, self.track_aruco)
+        # service3 = rospy.Service('move_joints_tutorial_interpolation', InterpolationMultiJoints, self.handle_interpolation_multi_joints)
+        service4 = rospy.Service('track_aruco', TrackAruco, self.track_aruco)
         print("Ready to move joints.")
         rospy.spin()
 

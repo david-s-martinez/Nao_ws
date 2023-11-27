@@ -5,7 +5,7 @@ import almath
 import sys
 from naoqi import ALProxy
 from nao_control_tutorial_1.srv import MoveJoints
-# from nao_control_tutorial_1.srv import InterpolationMultiJoints
+from nao_control_tutorial_1.srv import InterpolationMultiJoints
 from nao_control_tutorial_1.srv import InterpolationJoints
 from nao_control_tutorial_1.srv import TrackAruco
 motionProxy = 0
@@ -161,7 +161,7 @@ class JointControl(object):
             print(e)
             print("Move joints failed")
             return False
-        
+    # Callback function Aruco with set Angles 
     def get_frame(self,data):
         aruco_det = ArucoDetection()
         bridge = CvBridge()
@@ -184,24 +184,89 @@ class JointControl(object):
             cY = int((top_left[1] + bottom_right[1]) / 2.0)
 
             # Calculate the center of the image 
-            image_width, image_height  = frame.shape[:2]
-            image_xcenter = image_width / 2.0 
-            image_ycenter = image_height / 2.0
+            # image_width, image_height  = frame.shape[:2]
+            # image_xcenter = image_width / 2.0 
+            # image_ycenter = image_height / 2.0
+
+            #Based on NAO documentation 
+            image_xcenter = 640 / 2.0
+            image_ycenter = 480 / 2.0
+
 
             #Calculate the displacement between the centroid of the ArUco and the center of the image
-            dx = cX - image_xcenter
+            dx =  image_xcenter - cX
             dy = cY - image_ycenter 
 
 
             # Find the angle using the horizontal and vertical fov mapping (Nao's documentation)
 
-            yaw_angle = (dx/image_width) * 60.9
-            pitch_angle = (dy / image_height ) * 47.6
+            yaw_angle = (dx/640 ) * 60.9
+            pitch_angle = (dy / 480 ) * 47.6
             names = [ 'HeadYaw', 'HeadPitch']
             angles = [yaw_angle*almath.TO_RAD, pitch_angle*almath.TO_RAD]
             fractionMaxSpeed = 0.1
             self.motionProxy.setAngles(names, angles, fractionMaxSpeed)
             
+            print(tran_vec)
+        #cv2.rectangle(cv_image, (0, 0), (100, 100), color=(255,0,0), thickness=2)
+        cv2.imshow('Original Image',cv_image)
+        cv2.imshow('Track Image',frame)
+        key = cv2.waitKey(1)
+
+    # Callback function Aruco with set Angles 
+    def get_frame_interpolation(self,data):
+        aruco_det = ArucoDetection()
+        bridge = CvBridge()
+        cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
+        frame, tran_vecs, corners = aruco_det.detect_tags_3D(cv_image)
+        print(len(corners),corners)
+        if len(tran_vecs) > 0:
+            tran_vec = tran_vecs[0][0]
+            tran_vec = [tran_vec[0],tran_vec[1], tran_vec[2]]
+            corner = corners[0][0]
+            corner = corner.reshape((4, 2))
+            (top_left, top_right, bottom_right, bottom_left) = corner 
+            top_left = (int(top_left[0]), int(top_left[1]))
+            top_right = (int(top_right[0]), int(top_right[1]))
+            bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
+            bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
+
+            # Compute centroid
+            cX = int((top_left[0] + bottom_right[0]) / 2.0)
+            cY = int((top_left[1] + bottom_right[1]) / 2.0)
+
+            # Calculate the center of the image 
+            # image_width, image_height  = frame.shape[:2]
+            # image_xcenter = image_width / 2.0 
+            # image_ycenter = image_height / 2.0
+
+            #Based on NAO documentation 
+            image_xcenter = 640 / 2.0
+            image_ycenter = 480 / 2.0
+
+
+            #Calculate the displacement between the centroid of the ArUco and the center of the image
+            dx =  image_xcenter - cX
+            dy = cY - image_ycenter 
+
+
+            # Find the angle using the horizontal and vertical fov mapping (Nao's documentation)
+            yaw_angle = (dx/640 ) * 60.9
+            pitch_angle = (dy / 480 ) * 47.6
+            names = ['HeadYaw', 'HeadPitch']
+            angles = [yaw_angle*almath.TO_RAD, pitch_angle*almath.TO_RAD]
+            isAbsolute = True
+            maxSpeedFraction = 0.2
+            timeLists  = 2.0
+
+
+            self.motionProxy.angleInterpolationWithSpeed(names, angles, maxSpeedFraction)
+
+            # Call getTaskList to have the previous angleInterpolation task number
+            taskList = self.motionProxy.getTaskList()
+
+            self.motionProxy.killTask(taskList[0][1])
+
             print(tran_vec)
         #cv2.rectangle(cv_image, (0, 0), (100, 100), color=(255,0,0), thickness=2)
         cv2.imshow('Original Image',cv_image)
@@ -214,8 +279,9 @@ class JointControl(object):
             if start == True:
                 rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.get_frame)
                 rospy.spin()
-            else:
-                pass
+            elif start == False:
+                rospy.Subscriber("/nao_robot/camera/top/camera/image_raw", Image, self.get_frame_interpolation)
+                rospy.spin()
             return True
         except Exception as e:
             print(e)
@@ -246,9 +312,37 @@ class JointControl(object):
             # self.motionProxy.setStiffnesses("Head", 1.0)
             joint_names = req.joint_names
             anglesList = [angle*almath.TO_RAD for angle in req.anglesList]
-            time_assigned = req.time_assigned
+            time_assigned = list(req.time_assigned)
             isAbsolute =req.isAbsolute
-            self.motionProxy.angleInterpolation(joint_names, anglesList, time_assigned, isAbsolute)
+            # Transform it into arrays of arrays based on the siye of joint names 
+            # anglesList = np.array(anglesList)
+            # anglesList = anglesList.reshape((-1,5))
+            # print(anglesList)
+
+            #time also should be transformed
+            # time_assigned = np.array(time_assigned)
+            # time_assigned = time_assigned.reshape((-1,5))
+            # print(time_assigned)
+
+            # Reshape into a list of lists
+            angles_list_formatted = []
+            time_assigned_formatted = []
+
+            chunk_size = 1  # Define the number of elements per inner list
+
+            # Create sublists of 'chunk_size' elements for anglesList
+            for i in range(0, len(anglesList), chunk_size):
+                angles_list_formatted.append(anglesList[i:i + chunk_size])
+
+            # Create sublists of 'chunk_size' elements for time_assigned
+            for i in range(0, len(time_assigned), chunk_size):
+                time_assigned_formatted.append(time_assigned[i:i + chunk_size])
+
+            print(angles_list_formatted)
+            print(time_assigned_formatted)
+
+
+            self.motionProxy.angleInterpolation(joint_names, angles_list_formatted, time_assigned_formatted, isAbsolute)
             print("Moving joint: " + str(joint_names))
             time.sleep(3.0)
             # self.motionProxy.setStiffnesses("Head", 0.0)
@@ -265,7 +359,7 @@ class JointControl(object):
         rospy.init_node('move_joints_server')
         service1 = rospy.Service('move_joints_tutorial', MoveJoints, self.handle_move_joints)
         service2 = rospy.Service('move_joints_tutorial_interpolation', InterpolationJoints, self.handle_interpolation_joints)
-        # service3 = rospy.Service('move_joints_tutorial_interpolation', InterpolationMultiJoints, self.handle_interpolation_multi_joints)
+        service3 = rospy.Service('move_multijoints_tutorial_interpolation', InterpolationMultiJoints, self.handle_interpolation_multi_joints)
         service4 = rospy.Service('track_aruco', TrackAruco, self.track_aruco)
         print("Ready to move joints.")
         rospy.spin()

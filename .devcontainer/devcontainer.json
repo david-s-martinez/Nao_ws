@@ -1,32 +1,54 @@
 {
-	"name": "refactor_ws",
+	"name": "hrs_ws",
 	"dockerFile": "Dockerfile",
+	"containerUser": "devel",
 	"containerEnv" : {
 		"DISPLAY" : "${localEnv:DISPLAY}",
-		"QT_X11_NO_MITSHM" : "1"
+		"QT_X11_NO_MITSHM" : "1",
+		"SHELL": "/bin/bash"
+	},
+	"remoteEnv": { 
+		"DISPLAY": "${localEnv:DISPLAY}"
 	},
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-python.python",
 				"ms-iot.vscode-ros"
-			]
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash",
+				"terminal.integrated.profiles.linux": {
+					"bash": {
+						"path": "/bin/bash"
+					}
+				}
+			}
 		}
 	},
 	"runArgs": [
-		"--network=host"
+		"--runtime=nvidia",
+		"--network=host",
+		//"--privileged",
+		"--gpus=all"
 	],
 	"mounts": [
-		//{ 
-		//	"source": "/dev/dri", 
-		//	"target": "/dev/dri",
-		//	"type": "bind"
-		//},
+		{ 
+			"source": "/dev/dri", 
+			"target": "/dev/dri",
+			"type": "bind"
+		},
 		{ 
 			"source": "/tmp/.X11-unix", 
 			"target": "/tmp/.X11-unix",
 			"type": "bind"
 		},
+		{ 
+			"source": "/etc/machine-id", 
+			"target": "/etc/machine-id",
+			"type": "bind"
+		}
+
 		//{ 
 		//	"source": "/dev", 
 		//	"target": "/dev",

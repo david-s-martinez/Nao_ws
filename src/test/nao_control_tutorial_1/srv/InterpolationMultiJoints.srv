@@ -1,0 +1,9 @@
+
+
+string[2] joint_names
+float64[2] anglesList
+float64[2] time_assigned
+bool isAbsolute 
+--------------------------------
+
+bool status

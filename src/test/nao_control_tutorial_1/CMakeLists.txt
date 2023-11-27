@@ -17,7 +17,6 @@ add_service_files(
     InterpolationJoints.srv
     TrackAruco.srv
     InterpolationMultiJoints.srv
-    CartesianPositionOrientation.srv
 
 )
 

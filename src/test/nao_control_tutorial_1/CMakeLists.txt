@@ -17,6 +17,8 @@ add_service_files(
     InterpolationJoints.srv
     TrackAruco.srv
     InterpolationMultiJoints.srv
+    CartesianPositionOrientation.srv
+
 )
 
 generate_messages(DEPENDENCIES std_msgs)

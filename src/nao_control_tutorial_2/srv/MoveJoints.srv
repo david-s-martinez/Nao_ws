@@ -1,0 +1,10 @@
+#Request parameters for interpolations
+string JointName
+float64[3] PositionMatrix
+float64[3] OrientationMatrix
+float64 MaximumVelocity
+float64 ExecutionTime
+
+--------------------------------
+#CREATE response parameters
+float64[6] Cartesian_Position_Orientation

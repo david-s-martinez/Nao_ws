@@ -244,7 +244,7 @@ class JointControl(object):
     #Exercise 1 - 2
     def move_LArm_home(self, req):
         try:
-
+            # [0.21803319454193115, -0.10038279742002487, 0.11985749006271362, 0.014173304662108421, -0.1308259218931198, 0.07646903395652771]
             JointName = 'LArm'
             space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
             useSensorValues = True  #If true, the sensor values will be used to determine the position.
@@ -402,6 +402,25 @@ class JointControl(object):
             tvec_col = aruco_corrected[:,-1]
             aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
             aruco_det.broadcast_marker_transform(rvec, aruco2torso)
+
+            # Move arm
+            JointName = "RArm"
+            space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
+            useSensorValues = True  #If true, the sensor values will be used to determine the position.
+            Position6D_arm = self.motionProxy.getPosition(JointName, space, useSensorValues)
+            print(Position6D_arm)
+            # PositionMatrix = [Position6D_arm[0], aruco2torso[0]/100, aruco2torso[1]/100]
+            PositionMatrix = [0.2,-aruco2torso[0]/100, aruco2torso[1]/100]
+            OrientationMatrix = [0.014173304662108421, -0.1308259218931198, 0.07646903395652771]
+            Position6D = PositionMatrix + OrientationMatrix
+            MaximumVelocity = 0.1
+            print(Position6D)
+            space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
+            useSensorValues = True  #If true, the sensor values will be used to determine the position.
+            self.motionProxy.positionInterpolations(JointName, space, Position6D, 7, 1.0)
+            # print(Position6D)
+
+
             # aruco_det.broadcast_marker_transform(rvec, tvec)
         print(len(tvec),tvec)
 

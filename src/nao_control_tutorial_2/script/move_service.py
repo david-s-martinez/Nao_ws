@@ -21,7 +21,7 @@ import math
 #motionProxy =0;
 
 class ArucoDetection:
-    def __init__(self, marker_size= 8.7,tag_scaling = 0.5, box_z = 3.0, tag_dict = cv2.aruco.DICT_ARUCO_ORIGINAL):
+    def __init__(self, marker_size= 0.087,tag_scaling = 0.5, box_z = 3.0, tag_dict = cv2.aruco.DICT_ARUCO_ORIGINAL):
         """
         ArucoDetection object constructor. Initializes data containers.
         camera matrix
@@ -48,19 +48,19 @@ class ArucoDetection:
         self.plane_img_pts_detect = []
 
         self.camera_matrix = np.array(
-            [[502.63849959,   0. ,        328.96515157],
-            [0.    ,     502.63849959, 249.74604858],
+            [[278.236008818534, 0,    156.194471689706],
+            [0.    ,    279.380102992049, 126.007123836447],
             [ 0.    ,       0.      ,     1.] ])
         
         self.camera_distortion = np.array(
-            [8.75345261e+00,5.07315184e+01,8.25609725e-03,3.04573657e-03,2.10942303e+02,8.75507174e+00,4.83657869e+01,2.10477474e+02,0.00000000e+00,0.00000000e+00,0.00000000e+00,0.00000000e+00,0.00000000e+00,0.00000000e+00])
+            [-0.0481869853715082,  0.0201858398559121,0.0030362056699177, -0.00172241952442813, 0])
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(tag_dict)
         self.parameters = cv2.aruco.DetectorParameters_create()
 
 
         # ROS Initialization
         self.tf_broadcaster = tf.TransformBroadcaster()
-        self.reference_frame = 'CameraBottom_optical_frame'
+        self.reference_frame = 'torso'
         #self.reference_frame = 'torso'
 
         # Used to convert between ROS and OpenCV images
@@ -72,9 +72,9 @@ class ArucoDetection:
         transform.header.frame_id = self.reference_frame
         transform.child_frame_id = "aruco_marker"  # Adjust the child frame ID as needed
 
-        transform.transform.translation.x = tvec[0]/100
-        transform.transform.translation.y = tvec[1]/100
-        transform.transform.translation.z = tvec[2]/100
+        transform.transform.translation.x = tvec[0]
+        transform.transform.translation.y = tvec[1]
+        transform.transform.translation.z = tvec[2]
 
         # aruco_array = np.array(tvec[0]/100,tvec[1]/100,tvec[2]/100, 1)
         # rotation_matrix = cv2.Rodrigues(rvec)[0]
@@ -88,7 +88,7 @@ class ArucoDetection:
         transform.transform.rotation.z = 0
         transform.transform.rotation.w = 0
 
-        self.tf_broadcaster.sendTransform((tvec[0]/100,tvec[1]/100,tvec[2]/100 ), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "aruco_marker", self.reference_frame)
+        self.tf_broadcaster.sendTransform((tvec[0],tvec[1],tvec[2]), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "aruco_marker", self.reference_frame)
 
 
 
@@ -357,7 +357,7 @@ class JointControl(object):
     def HomogeneousTransformation(self, name):
         
         frame  = motion.FRAME_TORSO
-        useSensorValues  = True
+        useSensorValues  = False
         result = self.motionProxy.getTransform(name, frame, useSensorValues)
         # for i in range(0, 4):
         #     for j in range(0, 4):
@@ -389,31 +389,63 @@ class JointControl(object):
 
         if len(tvec)>0:
 
+            # aruco_flip = np.eye(4)
+            # aruco_flip[2,2] = aruco_flip[2,2]#*-1
+            # aruco_flip[:3,-1] = np.transpose(tvec)
+            # original_matrix = np.array([0.0, 0.0, 0.0])  # Example 3D vector
+            # angle = -90  # Rotation angle in degrees
+            # rotated_matrix = rotate_matrix(original_matrix, 'x', angle)
+            # sensor_corr = rotate_matrix(rotated_matrix, 'z', angle)
+            # R_corr = np.eye(4)
+
+            # #R_corr[:3, :3] = sensor_corr
+            # R_corr[:3, :3] = sensor_corr
+            # aruco_corrected = np.matmul(R_corr, aruco_flip)
+            # angle = 90  # Rotation angle in degrees
+
+            # # Can be 'x', 'y', or 'z'
+            # rotated_matrix = rotate_matrix(original_matrix, 'z', angle)
+            # final_matrix = rotate_matrix(rotated_matrix, 'x', angle)
+            # R = np.eye(4)
+            # R[:3, :3] = final_matrix
+
+            # camera_bottom2torso = self.HomogeneousTransformation(name  = "CameraBottom")
+            # camera_bottomOF2torso = np.matmul(camera_bottom2torso, R)
+
+            # tvec_col = aruco_corrected[:,-1]
+            # aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
+            # aruco_det.broadcast_marker_transform(rvec, aruco2torso)
+
+
             aruco_flip = np.eye(4)
-            aruco_flip[2,2] = aruco_flip[2,2]#*-1
+            # aruco_flip[2,2] = aruco_flip[2,2]#*-1
             aruco_flip[:3,-1] = np.transpose(tvec)
             original_matrix = np.array([0.0, 0.0, 0.0])  # Example 3D vector
-            angle = -90  # Rotation angle in degrees
-            rotated_matrix = rotate_matrix(original_matrix, 'x', angle)
-            sensor_corr = rotate_matrix(rotated_matrix, 'z', angle)
-            R_corr = np.eye(4)
+            # angle = -90  # Rotation angle in degrees
+            # rotated_matrix = rotate_matrix(original_matrix, 'x', angle)
+            # sensor_corr = rotate_matrix(rotated_matrix, 'z', angle)
+            # R_corr = np.eye(4)
 
             #R_corr[:3, :3] = sensor_corr
-            R_corr[:3, :3] = sensor_corr
-            aruco_corrected = np.matmul(R_corr, aruco_flip)
-            angle = 90  # Rotation angle in degrees
-
+            # R_corr[:3, :3] = sensor_corr
+            # aruco_corrected = np.matmul(R_corr, aruco_flip)
+            #angle = 90  # Rotation angle in degrees
+            angle = 1.570796
             # Can be 'x', 'y', or 'z'
-            rotated_matrix = rotate_matrix(original_matrix, 'z', angle)
-            final_matrix = rotate_matrix(rotated_matrix, 'x', angle)
+            rotated_matrix = rotate_matrix(original_matrix, 'x', angle)
+            final_matrix = rotate_matrix(rotated_matrix, 'z', angle)
             R = np.eye(4)
             R[:3, :3] = final_matrix
 
             camera_bottom2torso = self.HomogeneousTransformation(name  = "CameraBottom")
-            camera_bottomOF2torso = np.matmul(camera_bottom2torso, R)
+            # camera_bottomOF2torso = np.matmul(camera_bottom2torso, R)
 
-            tvec_col = aruco_corrected[:,-1]
-            aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
+            tvec_col = aruco_flip[:,-1]
+            # aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
+           
+
+            aruco2camerabottom = np.dot(tvec_col, R)
+            aruco2torso = np.dot(aruco2camerabottom, camera_bottom2torso)
             aruco_det.broadcast_marker_transform(rvec, aruco2torso)
             #print(aruco2torso)
 
@@ -430,26 +462,21 @@ class JointControl(object):
             # Position6DRight = PositionMatrixMovementRight + OrientationMatrixRight
             # JointName = "RArm"
             # space = motion.FRAME_TORSO
-            # # MaximumVelocity = 0.1
-            # # # print(Position6D)
-            # MaximumVelocity = 0.9
-            # self.motionProxy.setPosition(JointName, space, Position6DRight, MaximumVelocity, 7)
-            # #print(Position6D)
 
 
             # Move Left Arm 
             #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
-            OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
-            PositionMatrixMovementLeft = [0.20665521919727325, aruco2torso[0]/100,-aruco2torso[1]/100]
-            #Dont mind about the orientation matrix 
-            Position6DLeft = PositionMatrixMovementLeft + OrientationMatrixLeft
-            JointName = "LArm"
-            space = motion.FRAME_TORSO
-            # MaximumVelocity = 0.1
-            # # print(Position6D)
-            MaximumVelocity = 0.9
-            self.motionProxy.setPosition(JointName, space, Position6DLeft, MaximumVelocity, 7)
-            self.current_state = True
+            # OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
+            # PositionMatrixMovementLeft = [0.20665521919727325, -aruco2torso[0]/100,-aruco2torso[1]/100]
+            # #Dont mind about the orientation matrix 
+            # Position6DLeft = PositionMatrixMovementLeft + OrientationMatrixLeft
+            # JointName = "LArm"
+            # space = motion.FRAME_TORSO
+            # # MaximumVelocity = 0.1
+            # # # print(Position6D)
+            # MaximumVelocity = 0.9
+            # self.motionProxy.setPosition(JointName, space, Position6DLeft, MaximumVelocity, 7)
+            # self.current_state = True
 
 
         else:

@@ -48,12 +48,12 @@ class ArucoDetection:
         self.plane_img_pts_detect = []
 
         self.camera_matrix = np.array(
-            [[502.63849959,   0. ,        328.96515157],
-            [0.    ,     502.63849959, 249.74604858],
+            [[278.236008818534, 0,    156.194471689706],
+            [0.    ,    279.380102992049, 126.007123836447],
             [ 0.    ,       0.      ,     1.] ])
         
         self.camera_distortion = np.array(
-            [8.75345261e+00,5.07315184e+01,8.25609725e-03,3.04573657e-03,2.10942303e+02,8.75507174e+00,4.83657869e+01,2.10477474e+02,0.00000000e+00,0.00000000e+00,0.00000000e+00,0.00000000e+00,0.00000000e+00,0.00000000e+00])
+            [-0.0481869853715082, 0.0201858398559121,0.0030362056699177, -0.00172241952442813, 0])
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(tag_dict)
         self.parameters = cv2.aruco.DetectorParameters_create()
 
@@ -488,7 +488,7 @@ class JointControl(object):
 
                     # # print(Position6D)
                     MaximumVelocity = 0.9
-                    self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 7)
+                    self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
 
                 if (self.counterleft > 20):
                     self.counterleft = 0
@@ -502,7 +502,7 @@ class JointControl(object):
 
                     # # print(Position6D)
                     MaximumVelocity = 0.9
-                    self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 7)
+                    self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
 
                 self.current_state = False
             print(self.counterright)

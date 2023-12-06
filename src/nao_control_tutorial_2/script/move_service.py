@@ -381,13 +381,24 @@ class JointControl(object):
         bridge = CvBridge()
         cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
         frame, rvec, tvec, corners = aruco_det.detect_tags_3D(cv_image)
-        #print(len(corners),corners)
 
 
 
         #print(PositionOrientationInitial)
 
         if len(tvec)>0:
+            corner = corners[0][0]
+            corner = corner.reshape((4, 2))
+            (top_left, top_right, bottom_right, bottom_left) = corner 
+            top_left = (int(top_left[0]), int(top_left[1]))
+            top_right = (int(top_right[0]), int(top_right[1]))
+            bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
+            bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
+
+            # Compute centroid
+            cX = int((top_left[0] + bottom_right[0]) / 2.0)
+            cY = int((top_left[1] + bottom_right[1]) / 2.0)
+            print(len(corners),cX,cY)
 
             aruco_flip = np.eye(4)
             aruco_flip[2,2] = aruco_flip[2,2]#*-1
@@ -415,41 +426,42 @@ class JointControl(object):
             tvec_col = aruco_corrected[:,-1]
             aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
             aruco_det.broadcast_marker_transform(rvec, aruco2torso)
-            #print(aruco2torso)
+            if cX > frame.shape[0]/2:
+                #print(aruco2torso)
 
-            # Move Right Arm 
-            #We got these numbers using the getPosition function for RArm and setting the robot 
-            #when  stiffness was disabled to the intial position desired
-            #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
-
-
-            # UNCOMMENT THIS 
-            # OrientationMatrixRight = [2.4088447093963623, 0.2626517415046692, 0.14893914759159088]
-            # PositionMatrixMovementRight = [0.21285086870193481, -aruco2torso[0]/100,-aruco2torso[1]/100]
-            # #Dont mind about the orientation matrix 
-            # Position6DRight = PositionMatrixMovementRight + OrientationMatrixRight
-            # JointName = "RArm"
-            # space = motion.FRAME_TORSO
-            # # MaximumVelocity = 0.1
-            # # # print(Position6D)
-            # MaximumVelocity = 0.9
-            # self.motionProxy.setPosition(JointName, space, Position6DRight, MaximumVelocity, 7)
-            # #print(Position6D)
+                # Move Right Arm 
+                #We got these numbers using the getPosition function for RArm and setting the robot 
+                #when  stiffness was disabled to the intial position desired
+                #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
 
 
-            # Move Left Arm 
-            #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
-            OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
-            PositionMatrixMovementLeft = [0.20665521919727325, aruco2torso[0]/100,-aruco2torso[1]/100]
-            #Dont mind about the orientation matrix 
-            Position6DLeft = PositionMatrixMovementLeft + OrientationMatrixLeft
-            JointName = "LArm"
-            space = motion.FRAME_TORSO
-            # MaximumVelocity = 0.1
-            # # print(Position6D)
-            MaximumVelocity = 0.9
-            self.motionProxy.setPosition(JointName, space, Position6DLeft, MaximumVelocity, 7)
-            self.current_state = True
+                # UNCOMMENT THIS 
+                OrientationMatrixRight = [2.4088447093963623, 0.2626517415046692, 0.14893914759159088]
+                PositionMatrixMovementRight = [0.21285086870193481, -aruco2torso[0]/100,-aruco2torso[1]/100]
+                #Dont mind about the orientation matrix 
+                Position6DRight = PositionMatrixMovementRight + OrientationMatrixRight
+                JointName = "RArm"
+                space = motion.FRAME_TORSO
+                # MaximumVelocity = 0.1
+                # # print(Position6D)
+                MaximumVelocity = 0.9
+                self.motionProxy.setPosition(JointName, space, Position6DRight, MaximumVelocity, 7)
+                #print(Position6D)
+
+            else:
+                # Move Left Arm 
+                #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
+                OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
+                PositionMatrixMovementLeft = [0.20665521919727325, aruco2torso[0]/100,-aruco2torso[1]/100]
+                #Dont mind about the orientation matrix 
+                Position6DLeft = PositionMatrixMovementLeft + OrientationMatrixLeft
+                JointName = "LArm"
+                space = motion.FRAME_TORSO
+                # MaximumVelocity = 0.1
+                # # print(Position6D)
+                MaximumVelocity = 0.9
+                self.motionProxy.setPosition(JointName, space, Position6DLeft, MaximumVelocity, 7)
+                self.current_state = True
 
 
         else:

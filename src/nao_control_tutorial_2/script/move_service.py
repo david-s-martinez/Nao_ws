@@ -478,8 +478,9 @@ class JointControl(object):
                 #print(self.counterright)
                 if (self.counterright > 20):
                     self.counterright = 0
-                    PositionMatrixRight = [0.21285086870193481, -0.0711820125579834, 0.05464955419301987]
-                    OrientationMatrixRight = [2.4088447093963623, 0.2626517415046692, 0.14893914759159088]
+                    # [0.15583667159080505, -0.11708324402570724, 0.25175711512565613, 1.7100205421447754, -0.8724943995475769, -0.18669183552265167]
+                    PositionMatrixRight = [0.15583667159080505, -0.11708324402570724, 0.25175711512565613]
+                    OrientationMatrixRight = [1.7100205421447754, -0.8724943995475769, -0.18669183552265167]
                     #Dont mind about the orientation matrix 
                     Position6D = PositionMatrixRight + OrientationMatrixRight
                     JointName = "RArm"
@@ -491,8 +492,9 @@ class JointControl(object):
 
                 if (self.counterleft > 20):
                     self.counterleft = 0
-                    PositionMatrixLeft = [0.20665521919727325, 0.04261146858334541, 0.06911896169185638]
-                    OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
+                    # [0.13588638603687286, 0.05417526513338089, 0.25502467155456543, -2.096224546432495, -1.0449066162109375, -0.30391818284988403]
+                    PositionMatrixLeft = [0.13588638603687286, 0.05417526513338089, 0.25502467155456543]
+                    OrientationMatrixLeft = [-2.096224546432495, -1.0449066162109375, -0.30391818284988403]
                     #Dont mind about the orientation matrix 
                     Position6D = PositionMatrixLeft + OrientationMatrixLeft
                     JointName = "LArm"

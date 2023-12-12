@@ -9,6 +9,8 @@
 #include "message_filters/subscriber.h"
 #include <string.h>
 #include <naoqi_bridge_msgs/JointAnglesWithSpeed.h>
+#include <naoqi_bridge_msgs/HandTouch.h>
+#include <naoqi_bridge_msgs/HeadTouch.h>
 #include <naoqi_bridge_msgs/Bumper.h>
 #include <naoqi_bridge_msgs/JointAnglesWithSpeedAction.h>
 #include <std_srvs/Empty.h>
@@ -76,14 +78,20 @@ public:
 
 	boost::thread *spin_thread;
 
+	std::vector<std::string> recognized_words;
+
 	Nao_control()
 	{
 
 		// subscribe to topic bumper and specify that all data will be processed by function bumperCallback
 		bumper_sub=nh_.subscribe("/bumper",1, &Nao_control::bumperCallback, this);
 
-		// subscribe to topic tactile_touch and specify that all data will be processed by function tactileCallback
-		// tactile_sub=nh_.subscribe("/tactile_touch",1, &Nao_control::tactileCallback, this);
+		// subscribe to topic tactile_touch and specify that all data will be processed by function head tactileCallback
+		tactile_sub=nh_.subscribe("/tactile_touch",1, &Nao_control::headTactileCallback, this);
+
+		// subscribe to topic tactile_touch and specify that all data will be processed by function head tactileCallback
+		//tactile_sub=nh_.subscribe("/tactile_touch",1, &Nao_control::handTactileCallback, this);
+
 
 		speech_pub = nh_.advertise<naoqi_bridge_msgs::SpeechWithFeedbackActionGoal>("/speech_action/goal", 1);
 
@@ -95,7 +103,7 @@ public:
 
 		recog_stop_srv=nh_.serviceClient<std_srvs::Empty>("/stop_recognition");
 
-		recog_sub=nh_.subscribe("/word_recognized",1, &Nao_control::speechRecognitionCB, this);
+		recog_sub=nh_.subscribe("/word_recognized",10, &Nao_control::speechRecognitionCB, this);
 
 		footContact_sub = nh_.subscribe<std_msgs::Bool>("/foot_contact", 1, &Nao_control::footContactCB, this);
 
@@ -103,6 +111,7 @@ public:
 
 		stop_thread=false;
 		spin_thread=new boost::thread(&spinThread);
+
 	}
 	~Nao_control()
 	{
@@ -117,12 +126,33 @@ public:
 		 * TODO tutorial 3
 		 */
 	}
+	void setVocabulary() 
+	{
+		naoqi_bridge_msgs::SetSpeechVocabularyActionGoal vocab_msg;
 
+		// Add words to your vocabulary
+		vocab_msg.goal.words.push_back("hello");
+		vocab_msg.goal.words.push_back("goodbye");
+		vocab_msg.goal.words.push_back("yes");
+		vocab_msg.goal.words.push_back("no");
+		// ... add other words as needed ...
+
+		// Publish the vocabulary
+		voc_params_pub.publish(vocab_msg);
+
+		ROS_INFO("Published new speech vocabulary.");
+	}
 	void speechRecognitionCB(const naoqi_bridge_msgs::WordRecognized::ConstPtr& msg)
 	{
-		/*
-		 * TODO tutorial 3
-		 */
+		for (size_t i = 0; i < msg->words.size(); ++i) 
+		{
+			std::string recognized_word = msg->words[i];
+			float confidence = msg->confidence_values[i];
+
+			//Store the words 
+			recognized_words.push_back(recognized_word);
+			std::cout << "Recognized: " << recognized_word << " with confidence: " << confidence << std::endl;
+    	}
 	}
 
 	//Exerciise 1 
@@ -214,13 +244,55 @@ public:
 
 	}
 
-	// void tactileCallback(const naoqi_bridge_msgs::TactileTouch::ConstPtr& tactileState)
-	// {
-	// 	/*
-	// 	 * TODO tutorial 3
-	// 	 */
-	// }
+	void headTactileCallback(const naoqi_bridge_msgs::HeadTouch::ConstPtr& headtactileState)
+	{
 
+		// button = 1 Tactile Front - state = 1 -> Pressed
+		if(headtactileState->button == 1 && headtactileState->state == 1)
+		{
+
+			// Set speech vocabulary first
+			ROS_INFO_STREAM("Vocab Storing");
+        	setVocabulary();
+			// Start speech recognition
+			ROS_INFO_STREAM("Speech Recognition Starts");
+			std_srvs::Empty srv;
+			recog_start_srv.call(srv);
+
+		}
+		// button = 2 Tactile Middle - state = 1 -> Pressed
+		else if(headtactileState->button == 2 && headtactileState->state == 1)
+		{
+			//Stop speech recognition
+			ROS_INFO_STREAM("Speech Recognition Stops");
+			std_srvs::Empty stop_srv;
+			recog_stop_srv.call(stop_srv);
+
+			if (recognized_words.empty()){
+				naoqi_bridge_msgs::SpeechWithFeedbackActionGoal words;
+				words.goal.say = "stop playing with my buttons";
+				speech_pub.publish(words);
+			}
+			else{
+				for (int i = 0; i < recognized_words.size(); ++i){
+					naoqi_bridge_msgs::SpeechWithFeedbackActionGoal words;
+					ROS_INFO_STREAM("Talking"); 
+					words.goal.say = recognized_words[i];
+					speech_pub.publish(words);
+					ros::Duration(1.0).sleep();
+
+				}
+				recognized_words.clear();
+			}
+
+
+		}
+	}
+
+	void handTactileCallback(const naoqi_bridge_msgs::HandTouch::ConstPtr& tactileState)
+	{
+
+	}
 
 	void main_loop()
 	{

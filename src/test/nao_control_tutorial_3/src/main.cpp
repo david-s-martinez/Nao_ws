@@ -66,6 +66,8 @@ public:
 
 	//client for stoping speech recognition
 	ros::ServiceClient recog_stop_srv;
+	//client for stoping walking
+	ros::ServiceClient stop_walk_srv;
 
 	// subscriber to speech recognition
 	ros::Subscriber recog_sub;
@@ -102,6 +104,7 @@ public:
 		recog_start_srv=nh_.serviceClient<std_srvs::Empty>("/start_recognition");
 
 		recog_stop_srv=nh_.serviceClient<std_srvs::Empty>("/stop_recognition");
+		stop_walk_srv=nh_.serviceClient<std_srvs::Empty>("/stop_walk_srv");
 
 		recog_sub=nh_.subscribe("/word_recognized",10, &Nao_control::speechRecognitionCB, this);
 
@@ -209,14 +212,14 @@ public:
         	naoqi_bridge_msgs::BlinkActionGoal blink_message;
 			// Define the colors for blinking
 			//std_msgs::ColorRGBA color
-			ros::Duration duration(4);
+			ros::Duration duration(3);
 			color.r = 0.0;
 			color.g = 1.0; 
 			color.b = 0.0; 
 			color.a = 1.0; 
 			blink_message.goal.colors.push_back(color);
 			blink_message.goal.blink_duration = duration;
-			blink_message.goal.blink_rate_mean = 5;
+			blink_message.goal.blink_rate_mean = 2;
 			blink_message.goal.blink_rate_sd = 0.1; 
 			leds_pub.publish(blink_message);
 
@@ -228,14 +231,14 @@ public:
         	naoqi_bridge_msgs::BlinkActionGoal blink_message;
 			// Define the colors for blinking
 			//std_msgs::ColorRGBA color
-			ros::Duration duration(4);
+			ros::Duration duration(3);
 			color.r = 0.0;
 			color.g = 0.0; 
 			color.b = 0.0; 
 			color.a = 0.0; 
 			blink_message.goal.colors.push_back(color);
 			blink_message.goal.blink_duration = duration;
-			blink_message.goal.blink_rate_mean = 5;
+			blink_message.goal.blink_rate_mean = 2;
 			blink_message.goal.blink_rate_sd = 0.1; 
 			leds_pub.publish(blink_message);
 
@@ -287,6 +290,16 @@ public:
 
 
 		}
+		else if(headtactileState->button == 3 && headtactileState->state == 1){
+			stopWalk();
+			walker(0.5,0.0,0.0);
+			walker(0.0,0.0,1.58);
+			walker(0.0,0.0,-1.58);
+			walker(0.0,0.0,-1.58);
+			walker(0.0,0.0,1.58);
+			stopWalk();
+
+		}
 	}
 
 	void handTactileCallback(const naoqi_bridge_msgs::HandTouch::ConstPtr& tactileState)
@@ -302,22 +315,25 @@ public:
 			/*
 			 * TODO tutorial 3
 			 */
+
 			rate_sleep.sleep();
 		}
 	}
 
 	void walker(double x, double y, double theta)
 	{
-		/*
-		 * TODO tutorial 3
-		 */
+		geometry_msgs::Pose2D pose;
+		pose.x = x;
+		pose.y = y;
+		pose.theta = theta;
+		walk_pub.publish(pose);
+		ros::Duration(5.0).sleep();
 	}
 
 	void stopWalk()
 	{
-		/*
-		 * TODO tutorial 3
-		 */
+		std_srvs::Empty stop_srv;
+		stop_walk_srv.call(stop_srv);
 	}
 
 };

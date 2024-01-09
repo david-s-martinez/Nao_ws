@@ -1,0 +1,9 @@
+
+#Request parameters for interpolations
+string[1] joint_names
+float64[5] anglesList
+float64[5] time_assigned
+bool isAbsolute 
+--------------------------------
+#CREATE response parameters
+bool status

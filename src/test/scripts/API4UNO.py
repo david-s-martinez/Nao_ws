@@ -7,9 +7,13 @@ import requests
 import io
 
 
+# rf = Roboflow(api_key="GVcij9mJwc7oVfs78FzN")
+# project = rf.workspace().project("unocardmodel_v3")
+# model = project.version(3).model
+
 rf = Roboflow(api_key="GVcij9mJwc7oVfs78FzN")
-project = rf.workspace().project("unocardmodel_v3")
-model = project.version(3).model
+project = rf.workspace().project("uno-card-bot")
+model = project.version(9).model
 
 cap = cv2.VideoCapture(0)
 counter = 0

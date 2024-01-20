@@ -18,6 +18,7 @@ add_service_files(
     MoveJoints.srv
     CartesianPositionOrientation.srv
     TrackAruco.srv
+    Pose2D.srv
 )
 
 generate_messages(DEPENDENCIES std_msgs)

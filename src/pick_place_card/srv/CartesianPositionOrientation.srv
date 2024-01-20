@@ -1,0 +1,6 @@
+
+#Request parameters for interpolations
+string JointName
+--------------------------------
+#CREATE response parameters
+float64[6] Cartesian_Position_Orientation

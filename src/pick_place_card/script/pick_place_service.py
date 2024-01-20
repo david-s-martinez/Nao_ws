@@ -510,6 +510,12 @@ class JointControl(object):
         cv2.imshow('Original Image',cv_image)
         cv2.imshow('Track Image',frame)
         key = cv2.waitKey(1)
+        if key == ord('s'):
+            filename = 'savedImage.jpg'
+            # Using cv2.imwrite() method 
+            # Saving the image 
+            cv2.imwrite(filename, cv_image) 
+  
 
     def track_aruco(self, req):
         try:
@@ -548,7 +554,7 @@ class JointControl(object):
 
     def pick_card_service(self):
         pass
-    
+
     def move_joints_server(self):
         rospy.init_node('move_joints_server')
         service1 = rospy.Service('joint_cartesian_CordOr', CartesianPositionOrientation, self.joint_cartesian_coordinates)
@@ -567,8 +573,8 @@ if __name__ == '__main__':
     # motionProxy = ALProxy("ALMotion", robotIP, PORT)
     # rospy.init_node('move_joints_server')
     # rospy.spin()
-    robotIP=str(sys.argv[1])
-    PORT=int(sys.argv[2])
+    # robotIP=str(sys.argv[1])
+    # PORT=int(sys.argv[2])
     # print sys.argv[2]
  
-    jc = JointControl(robotIP,PORT)
+    jc = JointControl()

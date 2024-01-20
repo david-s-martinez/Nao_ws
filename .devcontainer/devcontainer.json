@@ -1,5 +1,5 @@
 {
-	"name": "hrs_ws",
+	"name": "Nao_ws",
 	"dockerFile": "Dockerfile",
 	"containerUser": "devel",
 	"containerEnv" : {

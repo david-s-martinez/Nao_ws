@@ -52,16 +52,10 @@ class NAOTalk:
 
     def run_speech(self, event_type):
 
-            # Construct the speech goal message
-            talk_msg = SpeechWithFeedbackActionGoal()
-            talk_msg.goal_id.id = str(rospy.Time.now().to_sec())
-            talk_msg.goal.say = str(random.choice(self.talk_phrases[event_type]))
-            
-            # Publish the trash talk line
-            self.speech_pub.publish(talk_msg)
-            rospy.sleep(10)
+        say = random.choice(self.talk_phrases[event_type])
+        self.run_given_speech(say,7)
 
-    def run_given_speech(self, input_speech):
+    def run_given_speech(self, input_speech, delay=10):
             
             
             # Construct the speech goal message
@@ -71,7 +65,7 @@ class NAOTalk:
             
             # Publish the trash talk line
             self.speech_pub.publish(talk_msg)
-            rospy.sleep(10)
+            rospy.sleep(delay)
 
     
 
@@ -204,7 +198,7 @@ def main():
     # rospy.spin()
 
     while True:
-
+        rospy.sleep(10)
         # NAO SPEECH 
         event_type = 'starter'
         nao_talk.run_speech(event_type)
@@ -236,14 +230,14 @@ def main():
 
         # NAO SPEECH 
         say = str("Starting Card is" + str(top_card))
-        nao_talk.run_given_speech(say)
+        nao_talk.run_given_speech(say,3)
         playing = True
 
         turn = choose_first()
         print(turn + ' will go first')
         #NAO SPEECH 
         say = str(str(turn) + "will go first")
-        nao_talk.run_given_speech(say)
+        nao_talk.run_given_speech(say,3)
 
 
         while playing:
@@ -264,7 +258,7 @@ def main():
                     temp_card = player_hand.single_card(pos)
                     # NAO SPEECH
                     say = str("Player's card is" + str(temp_card))
-                    nao_talk.run_given_speech(say)
+                    nao_talk.run_given_speech(say,4)
                     if single_card_check(top_card, temp_card):
                         if temp_card.cardtype == 'number':
                             top_card = player_hand.remove_card(pos)
@@ -304,7 +298,7 @@ def main():
                     print('You got: ' + str(temp_card))
                     # NAO SPEECH
                     say = str("Player draw" + str(temp_card))
-                    nao_talk.run_given_speech(say)
+                    nao_talk.run_given_speech(say,3)
                     time.sleep(1)
                     if single_card_check(top_card, temp_card):
                         player_hand.add_card(temp_card)
@@ -334,7 +328,7 @@ def main():
                         top_card = temp_card
                         #NAO Speech
                         say = str(str(top_card) + "is on the top." )
-                        nao_talk.run_given_speech(say)
+                        nao_talk.run_given_speech(say,5)
                         turn = 'Player'
                     else:
                         if temp_card.rank == 'Skip':
@@ -368,7 +362,7 @@ def main():
                     temp_card = deck.deal() #here change with the computer vision
                     # NAO SPEECH
                     say = str("I drew" + str(temp_card))
-                    nao_talk.run_given_speech(say)
+                    nao_talk.run_given_speech(say,3)
                     if single_card_check(top_card, temp_card):
                         print('\nNAO has option to throw:{}'.format(temp_card))
                         time.sleep(1)
@@ -400,7 +394,7 @@ def main():
                                 wildcolor = nao_hand.cards[0].color
                                 # NAO SPEECH
                                 say = str("I switch the color to" + str(wildcolor))
-                                nao_talk.run_given_speech(say)
+                                nao_talk.run_given_speech(say,5)
                                 print('Color changes to', wildcolor)
                                 top_card.color = wildcolor
                                 turn = 'Player'
@@ -408,14 +402,14 @@ def main():
                         print('NAO doesnt have a card')
                         # NAO SPEECH
                         say = str("I don't have a card")
-                        nao_talk.run_given_speech(say)
+                        nao_talk.run_given_speech(say,5)
                         time.sleep(1)
                         nao_hand.add_card(temp_card)
                         turn = 'Player'
                 print('\nNAO has {} cards remaining'.format(nao_hand.no_of_cards()))
                 # NAO SPEECH
                 say = str("I have "+ str(nao_hand.no_of_cards()) + "cards left.")
-                nao_talk.run_given_speech(say)
+                nao_talk.run_given_speech(say,5)
                 time.sleep(1)
                 if win_check(nao_hand):
                     print('\nNAO WON!!')

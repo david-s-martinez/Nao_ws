@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import random
 import time
+
 from naoqi_bridge_msgs.msg import SpeechWithFeedbackActionGoal,WordRecognized
+from naoqi_bridge_msgs.msg import SetSpeechVocabularyActionGoal
 import rospy
 
 class NAOTalk:
@@ -67,11 +69,11 @@ class NAOTalk:
             self.speech_pub.publish(talk_msg)
             rospy.sleep(delay)
 
-    
 
 
 
-color = ('RED','GREEN','BLUE','YELLOW',)
+
+color = ('RED','GREEN','BLUE','YELLOW')
 rank = ('0','1','2','3','4','5','6','7','8','9','Skip','Reverse','Draw2','Draw4','Wild')
 ctype = {'0':'number','1':'number','2':'number','3':'number','4':'number','5':'number','6':'number',
             '7':'number','8':'number','9':'number','Skip':'action','Reverse':'action','Draw2':'action',
@@ -82,43 +84,22 @@ class Card:
 
     def __init__(self, color, rank):
         self.rank = rank
-        if ctype[rank] == 'number':
-            self.color = color
-            self.cardtype = 'number'
-        elif ctype[rank] == 'action':
-            self.color = color
-            self.cardtype = 'action'
-        else:
-            self.color = None
-            self.cardtype = 'action_nocolor'
+        if color in ('RED','GREEN','BLUE','YELLOW',''):
+            if ctype[rank] == 'number': 
+                self.color = color
+                self.cardtype = 'number'
+            elif ctype[rank] == 'action':
+                self.color = color
+                self.cardtype = 'action'
+            else:
+                self.color = None
+                self.cardtype = 'action_nocolor'
 
     def __str__(self):
         if self.color == None:
             return self.rank
         else:
             return self.color + " " + self.rank
-class Deck:
-    def __init__(self):
-        self.deck = []
-        for clr in color:
-            for ran in rank:
-                if ctype[ran] != 'action_nocolor':
-                    self.deck.append(Card(clr, ran))
-                    self.deck.append(Card(clr, ran))
-                else:
-                    self.deck.append(Card(clr, ran))   
-
-    def __str__(self):
-        deck_comp = ''
-        for card in self.deck:
-            deck_comp += '\n' + card.__str__()
-        return 'The deck has ' + deck_comp
-
-    def shuffle(self):
-        random.shuffle(self.deck)
-
-    def deal(self):
-        return self.deck.pop()
 
 class NAOHand:
 
@@ -188,15 +169,31 @@ def last_card_check(hand):
         else:
             return False
 
+def deal_card():
+    ranc = input("\nWhat is my card number or action? (#/Skip/Reverse/Draw2/Draw4/Wild)  ")
+    if ranc not in ("Draw4","Wild"):
+        colour = input("\nWhat is my card color? (Color)  ")
+        if colour != colour.upper():
+            colour = colour.upper()
+    else: colour = ""
+
+    return Card(colour,ranc)
+
+def topcard():
+    ranc = input("\nWhat is my card number or action? (#/Skip/Reverse/Draw2/Draw4/Wild)  ")
+    if ranc not in ("Draw4","Wild"):
+        colour = input("\nWhat is my card color? (Color)  ")
+        if colour != colour.upper():
+            colour = colour.upper()
+    else: colour = ""
+
+    return Card(colour,ranc)
+
 
 def main():
     nao_hand = NAOHand()
     top_card = None
     nao_talk = NAOTalk()
-    player_hand = NAOHand()
-    deck = Deck()
-    # rospy.spin()
-
     while True:
         rospy.sleep(10)
         # NAO SPEECH 
@@ -206,28 +203,25 @@ def main():
 
         ###### Computer vision system integration here
         ### Let's say there is a function for detecting the cards
-        #top_card = get_top_card()
-        #new_cards = get_new_cards()
+        #top_card = get_top_card()     → CompVision Module would replace topcard() func  
+        #new_cards = get_new_cards()    → CompVision Module would replace deal_card() func
         ############
         #for card in new_cards:
-            #nao_hand.add_card(card)
-        
+            #nao_hand.add_card(card)    → already implemented
 
-        deck.shuffle()
+        print('Welcome to UNO! Finish your cards first to win')
 
-        for i in range(7):
-            player_hand.add_card(deck.deal())
-        for i in range(7):
-            nao_hand.add_card(deck.deal())
+        nao_hand = NAOHand()
+        for i in range(6):        
+            nao_hand.add_card(deal_card())
+        print("NAO's cards are:  ")
+        nao_hand.cards_in_hand()
 
-        top_card = deck.deal()
-        if top_card.cardtype != 'number':
-            while top_card.cardtype != 'number':
-                top_card = deck.deal()
-            
-        print('\nStarting Card is: {}'.format(top_card))
+        player_no_cards = 6
+
         time.sleep(1)
 
+        top_card = topcard()
         # NAO SPEECH 
         say = str("Starting Card is" + str(top_card))
         nao_talk.run_given_speech(say,3)
@@ -241,72 +235,51 @@ def main():
 
 
         while playing:
-
+            
             if turn == 'Player':
-                print('\nTop card is: ' + str(top_card))
-                print('Your cards: ')
-                player_hand.cards_in_hand()
-                if player_hand.no_of_cards() == 1:
-                    if last_card_check(player_hand):
-                        print('Last card cannot be action card \nAdding one card from deck')
-                        player_hand.add_card(deck.deal())
-                        print('Your cards: ')
-                        player_hand.cards_in_hand()
-                choice = input("\nHit or Pull? (h/p): ")
-                if choice == 'h':
-                    pos = int(input('Enter index of card: '))
-                    temp_card = player_hand.single_card(pos)
-                    # NAO SPEECH
-                    say = str("Player's card is" + str(temp_card))
-                    nao_talk.run_given_speech(say,4)
-                    if single_card_check(top_card, temp_card):
-                        if temp_card.cardtype == 'number':
-                            top_card = player_hand.remove_card(pos)
-                            turn = 'NAO'
-                        else:
-                            if temp_card.rank == 'Skip':
-                                turn = 'Player'
-                                top_card = player_hand.remove_card(pos)
-                            elif temp_card.rank == 'Reverse':
-                                turn = 'Player'
-                                top_card = player_hand.remove_card(pos)
-                            elif temp_card.rank == 'Draw2':
-                                nao_hand.add_card(deck.deal())
-                                nao_hand.add_card(deck.deal())
-                                top_card = player_hand.remove_card(pos)
-                                turn = 'Player'
-                            elif temp_card.rank == 'Draw4':
-                                for i in range(4):
-                                    nao_hand.add_card(deck.deal())
-                                top_card = player_hand.remove_card(pos)
-                                draw4color = input('Change color to (enter in caps): ')
-                                if draw4color != draw4color.upper():
-                                    draw4color = draw4color.upper()
-                                top_card.color = draw4color
-                                turn = 'Player'
-                            elif temp_card.rank == 'Wild':
-                                top_card = player_hand.remove_card(pos)
-                                wildcolor = input('Change color to (enter in caps): ')
-                                if wildcolor != wildcolor.upper():
-                                    wildcolor = wildcolor.upper()
-                                top_card.color = wildcolor
-                                turn = 'NAO'
-                    else:
-                        print('This card cannot be used')
-                elif choice == 'p':
-                    temp_card = deck.deal()
-                    print('You got: ' + str(temp_card))
-                    # NAO SPEECH
-                    say = str("Player draw" + str(temp_card))
-                    nao_talk.run_given_speech(say,3)
-                    time.sleep(1)
-                    if single_card_check(top_card, temp_card):
-                        player_hand.add_card(temp_card)
-                    else:
-                        print('Cannot use this card')
-                        player_hand.add_card(temp_card)
+                #NAO SPEECH 
+                say = str("Your turn")
+                nao_talk.run_given_speech(say,3)
+
+                throw_pulled = ""
+                # NAO LISTEN
+                choice = input("\nHit or Pull? (h/p): ")  # Replace by Speech recognition module
+                if choice == 'p':
+                    player_no_cards += 1
+                    # NAO LISTEN
+                    throw_card = input("\nAre you throwing the new card? (y/n): ") # Replace by Speech recognition module
+                    turn = 'NAO'
+
+                if choice == 'h' or throw_pulled == 'y':
+                    player_no_cards -= 1
+                    top_card = topcard()
+                    if top_card.cardtype == 'number':
                         turn = 'NAO'
-                if win_check(player_hand):
+                    else:
+                        if top_card.rank == 'Skip':
+                            turn = 'Player'
+                        elif top_card.rank == 'Reverse':
+                            turn = 'Player'
+                        elif top_card.rank == 'Draw2':
+                            nao_hand.add_card(deal_card())
+                            nao_hand.add_card(deal_card())
+                            turn = 'Player'
+                        elif top_card.rank == 'Draw4':
+                            for i in range(4):
+                                nao_hand.add_card(deal_card())
+                            draw4color = input('Change color to (enter in caps): ')
+                            if draw4color != draw4color.upper():
+                                draw4color = draw4color.upper()
+                            top_card.color = draw4color
+                            turn = 'Player'
+                        elif top_card.rank == 'Wild':
+                            wildcolor = input('Change color to (enter in caps): ')
+                            if wildcolor != wildcolor.upper():
+                                wildcolor = wildcolor.upper()
+                            top_card.color = wildcolor
+                            turn = 'NAO'
+                
+                if player_no_cards == 0 :
                     print('\nPLAYER WON!!')
                     # NAO SPEECH
                     event_type = 'losing'
@@ -319,8 +292,9 @@ def main():
                     if last_card_check(nao_hand):
                         time.sleep(1)
                         print('Adding a card to NAO hand')
-                        nao_hand.add_card(deck.deal())
+                        nao_hand.add_card(deal_card)
                 temp_card = full_hand_check(nao_hand, top_card)
+                time.sleep(1)
                 if temp_card != 'no card':
                     print('\nNAO throws:{}'.format(temp_card))
                     time.sleep(1)
@@ -338,18 +312,14 @@ def main():
                             turn = 'NAO'
                             top_card = temp_card
                         elif temp_card.rank == 'Draw2':
-                            player_hand.add_card(deck.deal())
-                            player_hand.add_card(deck.deal())
                             top_card = temp_card
                             turn = 'NAO'
                         elif temp_card.rank == 'Draw4':
-                            for i in range(4):
-                                player_hand.add_card(deck.deal())
                             top_card = temp_card
                             draw4color = nao_hand.cards[0].color
                             print('Color changes to', draw4color)
                             top_card.color = draw4color
-                            
+                            turn = 'NAO'
                         elif temp_card.rank == 'Wild':
                             top_card = temp_card
                             wildcolor = nao_hand.cards[0].color
@@ -359,12 +329,12 @@ def main():
                 else:
                     print('\nNAO wants to pull a card from deck')
                     time.sleep(1)
-                    temp_card = deck.deal() #here change with the computer vision
+                    temp_card = deal_card()
                     # NAO SPEECH
                     say = str("I drew" + str(temp_card))
                     nao_talk.run_given_speech(say,3)
                     if single_card_check(top_card, temp_card):
-                        print('\nNAO has option to throw:{}'.format(temp_card))
+                        print(f'NAO throws: {temp_card}')
                         time.sleep(1)
                         if temp_card.cardtype == 'number':
                             top_card = temp_card
@@ -377,13 +347,11 @@ def main():
                                 turn = 'NAO'
                                 top_card = temp_card
                             elif temp_card.rank == 'Draw2':
-                                player_hand.add_card(deck.deal())
-                                player_hand.add_card(deck.deal())
+                                player_no_cards += 2
                                 top_card = temp_card
                                 turn = 'NAO'
                             elif temp_card.rank == 'Draw4':
-                                for i in range(4):
-                                    player_hand.add_card(deck.deal())
+                                player_no_cards += 4
                                 top_card = temp_card
                                 draw4color = nao_hand.cards[0].color
                                 print('Color changes to', draw4color)
@@ -423,7 +391,7 @@ def main():
             continue
         else:
             print('\nThanks for playing!!')
-            break    
+            break
 
 
 
@@ -431,7 +399,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-     
-
-
-        

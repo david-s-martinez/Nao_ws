@@ -51,13 +51,11 @@ class NAOTalk:
 
 
     def run_speech(self, event_type):
-            
-            talk_line = random.choice(self.talk_phrases[event_type])
-            
+
             # Construct the speech goal message
             talk_msg = SpeechWithFeedbackActionGoal()
             talk_msg.goal_id.id = str(rospy.Time.now().to_sec())
-            talk_msg.goal.say = talk_line
+            talk_msg.goal.say = str(random.choice(self.talk_phrases[event_type]))
             
             # Publish the trash talk line
             self.speech_pub.publish(talk_msg)
@@ -211,6 +209,7 @@ def main():
         event_type = 'starter'
         nao_talk.run_speech(event_type)
 
+
         ###### Computer vision system integration here
         ### Let's say there is a function for detecting the cards
         #top_card = get_top_card()
@@ -263,6 +262,9 @@ def main():
                 if choice == 'h':
                     pos = int(input('Enter index of card: '))
                     temp_card = player_hand.single_card(pos)
+                    # NAO SPEECH
+                    say = str("Player's card is" + str(temp_card))
+                    nao_talk.run_given_speech(say)
                     if single_card_check(top_card, temp_card):
                         if temp_card.cardtype == 'number':
                             top_card = player_hand.remove_card(pos)
@@ -300,6 +302,9 @@ def main():
                 elif choice == 'p':
                     temp_card = deck.deal()
                     print('You got: ' + str(temp_card))
+                    # NAO SPEECH
+                    say = str("Player draw" + str(temp_card))
+                    nao_talk.run_given_speech(say)
                     time.sleep(1)
                     if single_card_check(top_card, temp_card):
                         player_hand.add_card(temp_card)
@@ -309,6 +314,9 @@ def main():
                         turn = 'NAO'
                 if win_check(player_hand):
                     print('\nPLAYER WON!!')
+                    # NAO SPEECH
+                    event_type = 'losing'
+                    nao_talk.run_speech(event_type)
                     playing = False
                     break
             
@@ -319,7 +327,6 @@ def main():
                         print('Adding a card to NAO hand')
                         nao_hand.add_card(deck.deal())
                 temp_card = full_hand_check(nao_hand, top_card)
-                time.sleep(1)
                 if temp_card != 'no card':
                     print('\nNAO throws:{}'.format(temp_card))
                     time.sleep(1)
@@ -359,7 +366,9 @@ def main():
                     print('\nNAO wants to pull a card from deck')
                     time.sleep(1)
                     temp_card = deck.deal() #here change with the computer vision
-
+                    # NAO SPEECH
+                    say = str("I drew" + str(temp_card))
+                    nao_talk.run_given_speech(say)
                     if single_card_check(top_card, temp_card):
                         print('\nNAO has option to throw:{}'.format(temp_card))
                         time.sleep(1)
@@ -389,18 +398,30 @@ def main():
                             elif temp_card.rank == 'Wild':
                                 top_card = temp_card
                                 wildcolor = nao_hand.cards[0].color
+                                # NAO SPEECH
+                                say = str("I switch the color to" + str(wildcolor))
+                                nao_talk.run_given_speech(say)
                                 print('Color changes to', wildcolor)
                                 top_card.color = wildcolor
                                 turn = 'Player'
                     else:
                         print('NAO doesnt have a card')
+                        # NAO SPEECH
+                        say = str("I don't have a card")
+                        nao_talk.run_given_speech(say)
                         time.sleep(1)
                         nao_hand.add_card(temp_card)
                         turn = 'Player'
                 print('\nNAO has {} cards remaining'.format(nao_hand.no_of_cards()))
+                # NAO SPEECH
+                say = str("I have "+ str(nao_hand.no_of_cards()) + "cards left.")
+                nao_talk.run_given_speech(say)
                 time.sleep(1)
                 if win_check(nao_hand):
                     print('\nNAO WON!!')
+                    # NAO SPEECH
+                    event_type = 'winning'
+                    nao_talk.run_speech(event_type)
                     playing = False
 
         new_game = input('Would you like to play again? (y/n)')

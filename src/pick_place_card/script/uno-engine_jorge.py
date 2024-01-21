@@ -334,7 +334,7 @@ def main():
                     say = str("I drew" + str(temp_card))
                     nao_talk.run_given_speech(say,3)
                     if single_card_check(top_card, temp_card):
-                        print(f'NAO throws: {temp_card}')
+                        print('NAO throws: {}'.format(temp_card))
                         time.sleep(1)
                         if temp_card.cardtype == 'number':
                             top_card = temp_card

@@ -292,7 +292,7 @@ def main():
                     if last_card_check(nao_hand):
                         time.sleep(1)
                         print('Adding a card to NAO hand')
-                        nao_hand.add_card(deal_card)
+                        nao_hand.add_card(deal_card())
                 temp_card = full_hand_check(nao_hand, top_card)
                 time.sleep(1)
                 if temp_card != 'no card':

@@ -79,7 +79,7 @@ class MovetoTarget(object):
                 print("Move joints failed")
                 return False
             
-    def move_LArm(self):
+    def LArm_init(self):
         try: 
             
             Position6DLeft = [0.121991366147995, 0.11651371419429779, 0.007444058544933796, -2.1198246479034424, -0.05146960914134979, 0.1333589255809784]
@@ -88,7 +88,20 @@ class MovetoTarget(object):
             MaximumVelocity = 0.9
             self.motionProxy.setPosition(JointName, space, Position6DLeft, MaximumVelocity, 63)
             print('Move to the mid position')
-            rospy.sleep(2)
+
+        
+        except Exception as e:
+                print(e)
+                print("Move joints failed")
+                return False
+        
+
+    def move_LArm(self):
+        try:
+
+            JointName = "LArm"
+            space = motion.FRAME_TORSO
+            MaximumVelocity = 0.4
             Position6DLeft_Down =  [0.1751420795917511, 0.1285971701145172, 0.0202433243393898, -2.150057554244995, 0.01597822830080986, 0.21731269359588623]
             self.motionProxy.setPosition(JointName, space, Position6DLeft_Down, MaximumVelocity, 63)
             print('Move Down Row')
@@ -110,15 +123,104 @@ class MovetoTarget(object):
     def move_to_Object(self):
         try:
             
+            #Middle Low Picked 
             pose_msg = Pose2D()
-            pose_msg.x = 0.0
-            pose_msg.y = -0.05
+            pose_msg.x = 0.13
+            pose_msg.y = 0
             pose_msg.theta = 0.0
-            self.postureProxy.goToPosture("StandInit", 0.5)
-            rospy.sleep(2)
+            leftArmEnable  = False
+            rightArmEnable = True
+            self.motionProxy.setMoveArmsEnabled(leftArmEnable, rightArmEnable)
             self.pub.publish(pose_msg)
-            print('tried walk')
+            print('tried to walk')
+
+
+            #Left Low Picked
+            # pose_msg = Pose2D()
+            # pose_msg.x = 0.12
+            # pose_msg.y = 0.05
+            # pose_msg.theta = 0.0
+            # self.postureProxy.goToPosture("StandInit", 0.5)
+            # rospy.sleep(2)
+            # self.pub.publish(pose_msg)
+            # print('tried to walk')
             
+
+            return True
+
+        except Exception as e:
+            print(e)
+            print("Move to Target failed")
+            return False
+        
+    def move_back(self):
+        try:
+            
+            #Middle Low Picked 
+            pose_msg = Pose2D()
+            pose_msg.x = 0.14
+            pose_msg.y = 0
+            pose_msg.theta = 0.0
+            self.pub.publish(pose_msg)
+            rospy.sleep(2)
+            self.postureProxy.goToPosture("StandZero", 1)
+
+            
+            print('tried to walk')
+
+
+            #Left Low Picked
+            # pose_msg = Pose2D()
+            # pose_msg.x = 0.12
+            # pose_msg.y = 0.05
+            # pose_msg.theta = 0.0
+            # self.postureProxy.goToPosture("StandInit", 0.5)
+            # rospy.sleep(2)
+            # self.pub.publish(pose_msg)
+            # print('tried to walk')
+            
+
+            return True
+
+        except Exception as e:
+            print(e)
+            print("Move to Target failed")
+            return False
+        
+        
+    def throw_card(self):
+        try:
+            
+            #Middle Low Picked 
+            pose_msg = Pose2D()
+            pose_msg.x = -0.01
+            pose_msg.y = -0.12
+            pose_msg.theta = 0.0
+            leftArmEnable  = False
+            rightArmEnable = True
+            self.motionProxy.setMoveArmsEnabled(leftArmEnable, rightArmEnable)
+            self.pub.publish(pose_msg)
+            print('tried to walk')
+            rospy.sleep(2)
+            self.postureProxy.goToPosture("StandInit", 1)
+            # JointName = "LArm"
+            # space = motion.FRAME_TORSO
+            # MaximumVelocity = 0.9
+            # Position6DLeft_PutCard =  [0.12016086280345917, 0.039947617799043655, -0.029062306508421898, -2.256195306777954, 0.29694950580596924, -0.2803468704223633]
+            # self.motionProxy.setPosition(JointName, space, Position6DLeft_PutCard, MaximumVelocity, 63)
+            # print('Move Down Row')
+
+
+
+            #Left Low Picked
+            # pose_msg = Pose2D()
+            # pose_msg.x = 0.12
+            # pose_msg.y = 0.05
+            # pose_msg.theta = 0.0
+            # self.postureProxy.goToPosture("StandInit", 0.5)
+            # rospy.sleep(2)
+            # self.pub.publish(pose_msg)
+            # print('tried to walk')
             
 
             return True
@@ -131,12 +233,22 @@ class MovetoTarget(object):
         
     def move_joints_server(self):
         rospy.init_node('move_joints_server')
-        #service3 = rospy.Service('get_LArm_positions', CartesianPositionOrientation, self.get_LArm_positions)
+        service3 = rospy.Service('get_LArm_positions', CartesianPositionOrientation, self.get_LArm_positions)
         # service1 = rospy.Service('FeetMovement', Pose2D, self.move_to_Object)
         print("Ready to move joints.")
+        self.LArm_init()
+        rospy.sleep(2)
         self.move_to_Object()
         rospy.sleep(2)
         self.move_LArm()
+        rospy.sleep(2)
+        self.throw_card()
+
+   
+        #self.throw_card()
+        # self.move_back()
+        #rospy.sleep(3)
+        # self.move_back()
         rospy.spin()
     
 # 	('Rotated Matrix:', array([[  6.12323400e-17,   0.00000000e+00,   1.00000000e+00],

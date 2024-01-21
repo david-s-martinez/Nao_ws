@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import random
 import time
 from naoqi_bridge_msgs.msg import SpeechWithFeedbackActionGoal,WordRecognized
@@ -7,6 +8,7 @@ class NAOTalk:
 
     def __init__(self):
 
+        rospy.init_node('nao_talk', anonymous=True)
         self.rate = rospy.Rate(1)
         self.speech_pub = rospy.Publisher("/speech_action/goal", SpeechWithFeedbackActionGoal, queue_size=10)
         self.talk_phrases = {
@@ -58,7 +60,8 @@ class NAOTalk:
             talk_msg.goal.say = talk_line
             
             # Publish the trash talk line
-            self.speech_pub.publish(talk_msg) 
+            self.speech_pub.publish(talk_msg)
+            rospy.sleep(10)
 
     def run_given_speech(self, input_speech):
             
@@ -69,7 +72,8 @@ class NAOTalk:
             talk_msg.goal.say = input_speech
             
             # Publish the trash talk line
-            self.speech_pub.publish(talk_msg)      
+            self.speech_pub.publish(talk_msg)
+            rospy.sleep(10)
 
     
 
@@ -101,10 +105,7 @@ class Card:
             return self.rank
         else:
             return self.color + " " + self.rank
-
-
 class Deck:
-
     def __init__(self):
         self.deck = []
         for clr in color:
@@ -113,7 +114,7 @@ class Deck:
                     self.deck.append(Card(clr, ran))
                     self.deck.append(Card(clr, ran))
                 else:
-                    self.deck.append(Card(clr, ran))
+                    self.deck.append(Card(clr, ran))   
 
     def __str__(self):
         deck_comp = ''
@@ -196,21 +197,13 @@ def last_card_check(hand):
             return False
 
 
-nao_hand = NAOHand()
-top_card = None
-nao_talk = NAOTalk()
-player_hand = NAOHand()
-deck = Deck()
-
 def main():
-
-    rospy.init_node('nao_talk', anonymous=True)
     nao_hand = NAOHand()
     top_card = None
     nao_talk = NAOTalk()
     player_hand = NAOHand()
     deck = Deck()
-
+    # rospy.spin()
 
     while True:
 
@@ -235,19 +228,23 @@ def main():
             nao_hand.add_card(deck.deal())
 
         top_card = deck.deal()
+        if top_card.cardtype != 'number':
+            while top_card.cardtype != 'number':
+                top_card = deck.deal()
+            
         print('\nStarting Card is: {}'.format(top_card))
         time.sleep(1)
 
         # NAO SPEECH 
         say = str("Starting Card is" + str(top_card))
-        nao_talk.run_speech_given(say)
+        nao_talk.run_given_speech(say)
         playing = True
 
         turn = choose_first()
         print(turn + ' will go first')
         #NAO SPEECH 
-        say = str(turn) + "will go first"
-        nao_talk.run_speech_given(say)
+        say = str(str(turn) + "will go first")
+        nao_talk.run_given_speech(say)
 
 
         while playing:
@@ -328,6 +325,9 @@ def main():
                     time.sleep(1)
                     if temp_card.cardtype == 'number':
                         top_card = temp_card
+                        #NAO Speech
+                        say = str(str(top_card) + "is on the top." )
+                        nao_talk.run_given_speech(say)
                         turn = 'Player'
                     else:
                         if temp_card.rank == 'Skip':
@@ -403,12 +403,12 @@ def main():
                     print('\nNAO WON!!')
                     playing = False
 
-            new_game = input('Would you like to play again? (y/n)')
-            if new_game == 'y':
-                continue
-            else:
-                print('\nThanks for playing!!')
-                break
+        new_game = input('Would you like to play again? (y/n)')
+        if new_game == 'y':
+            continue
+        else:
+            print('\nThanks for playing!!')
+            break    
 
 
 

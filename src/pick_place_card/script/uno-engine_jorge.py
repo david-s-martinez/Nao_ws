@@ -201,13 +201,12 @@ def main():
         nao_talk.run_speech(event_type)
 
 
-        ###### Computer vision system integration here
-        ### Let's say there is a function for detecting the cards
-        #top_card = get_top_card()     → CompVision Module would replace topcard() func  
-        #new_cards = get_new_cards()    → CompVision Module would replace deal_card() func
-        ############
-        #for card in new_cards:
-            #nao_hand.add_card(card)    → already implemented
+        # Computer vision system integration here
+        # Let's say there is a function for detecting the cards
+        # top_card = get_top_card()CompVision Module would replace topcard() func  
+        # new_cards = get_new_cards()CompVision Module would replace deal_card() func
+        # for card in new_cards:
+        # nao_hand.add_card(card) already implemented
 
         print('Welcome to UNO! Finish your cards first to win')
 

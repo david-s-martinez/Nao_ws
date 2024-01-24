@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import random
 import time
-from naoqi_bridge_msgs.msg import SpeechWithFeedbackActionGoal,WordRecognized
-import rospy
+# from naoqi_bridge_msgs.msg import SpeechWithFeedbackActionGoal,WordRecognized
+# import rospy
 from nao_communication import NAOCommunicate
 
 color = ('RED','GREEN','BLUE','YELLOW',)
@@ -35,7 +35,7 @@ class Deck:
     def __init__(self):
         self.deck = []
         for clr in color:
-            for ran in rank:
+            for ran in rank:input
                 if ctype[ran] != 'action_nocolor':
                     self.deck.append(Card(clr, ran))
                     self.deck.append(Card(clr, ran))
@@ -132,7 +132,7 @@ def main():
     # rospy.spin()
 
     while True:
-        rospy.sleep(10)
+        # rospy.sleep(10)
         # NAO SPEECH 
         event_type = 'starter'
         nao_talk.run_speech(event_type)

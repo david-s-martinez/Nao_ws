@@ -12,7 +12,8 @@ import tf
 # from pick_place_card.srv import Pose2D
 import tf2_ros
 from pick_place_card.srv import CartesianPositionOrientation
-
+from Aruco_Marker import ArucoDetection
+from Aruco_Marker import rotate_matrix
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 from geometry_msgs.msg import TransformStamped # Handles TransformStamped message
 from geometry_msgs.msg import Pose2D
@@ -57,7 +58,7 @@ class MovetoTarget(object):
         self.postureProxy = ALProxy("ALRobotPosture", robotIP, PORT)
         call_enable_body_stiffness_service()
         self.pub = rospy.Publisher('/cmd_pose', Pose2D, queue_size=10)
-        
+        self.current_state = 1
         self.move_joints_server(needs_node)
 
     def nao_walk(self,x ,y, theta):
@@ -299,6 +300,46 @@ class MovetoTarget(object):
             print("Move to Target failed")
             return False
         
+    def move_yaxis(self, cX):
+        try: 
+            if cX < 260:
+                self.nao_walk(x= 0, y = (cX - 269)*0.001, theta = 0.0)
+                corrected_y = False
+
+            elif cX > 275:
+                self.nao_walk(x= 0, y = (cX - 269)*0.001 , theta = 0.0)
+                corrected_y = False
+            else: 
+                self.postureProxy.goToPosture("StandInit", 1)
+                corrected_y = True
+            
+            return corrected_y
+        
+        except Exception as e:
+            print(e)
+            print("Move to Target failed")
+            return False
+
+    def move_xaxis(self, cY):
+        try: 
+            if cY < 45:
+                self.nao_walk(x= 0.01, y = 0.0 , theta = 0.0)
+                corrected_x = False
+
+            elif cY > 55:
+                self.nao_walk(x= -0.01, y = 0.0 , theta = 0.0)
+                corrected_x = False
+            else: 
+                self.postureProxy.goToPosture("StandInit", 1)
+                corrected_x = True
+            
+            return corrected_x
+
+        except Exception as e:
+            print(e)
+            print("Move to Target failed")
+            return False
+        
         
     def throw_card(self):
         try:
@@ -392,8 +433,134 @@ class MovetoTarget(object):
             print(e) 
             print("Left Hand Movement Fail")
             return False   
+        
+
+    def HomogeneousTransformation(self, name):
+        
+        frame  = motion.FRAME_TORSO
+        useSensorValues  = True
+        result = self.motionProxy.getTransform(name, frame, useSensorValues)
+        return np.array(result).reshape((4,4))
+
+    # Callback function Aruco with set Angles 
+    def get_frame(self,data):
+        aruco_det = ArucoDetection()
+        bridge = CvBridge()
+        cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
+        frame, rvec, tvec, corners = aruco_det.detect_tags_3D(cv_image)
+
+        if len(tvec)>0:
+            corner = corners[0][0]
+            corner = corner.reshape((4, 2))
+            (top_left, top_right, bottom_right, bottom_left) = corner 
+            top_left = (int(top_left[0]), int(top_left[1]))
+            top_right = (int(top_right[0]), int(top_right[1]))
+            bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
+            bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
+
+            # Compute centroid
+            cX = int((top_left[0] + bottom_right[0]) / 2.0)
+            cY = int((top_left[1] + bottom_right[1]) / 2.0)
+            #print(len(corners),cX,cY)
+            print('Centroid: ')
+            print(cX,cY)
+            print(frame.shape)
+
+            aruco_flip = np.eye(4)
+            aruco_flip[2,2] = aruco_flip[2,2]#*-1
+            aruco_flip[:3,-1] = np.transpose(tvec)
+            original_matrix = np.array([0.0, 0.0, 0.0])  # Example 3D vector
+            angle = -90  # Rotation angle in degrees
+            rotated_matrix = rotate_matrix(original_matrix, 'x', angle)
+            sensor_corr = rotate_matrix(rotated_matrix, 'z', angle)
+            R_corr = np.eye(4)
+
+            #R_corr[:3, :3] = sensor_corr
+            R_corr[:3, :3] = sensor_corr
+            aruco_corrected = np.matmul(R_corr, aruco_flip)
+            angle = 90  # Rotation angle in degrees
+
+            # Can be 'x', 'y', or 'z'
+            rotated_matrix = rotate_matrix(original_matrix, 'z', angle)
+            final_matrix = rotate_matrix(rotated_matrix, 'x', angle)
+            R = np.eye(4)
+            R[:3, :3] = final_matrix
+
+            camera_bottom2torso = self.HomogeneousTransformation(name  = "CameraBottom")
+            camera_bottomOF2torso = np.matmul(camera_bottom2torso, R)
+
+            tvec_col = aruco_corrected[:,-1]
+            aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
+            aruco_det.broadcast_marker_transform(rvec, aruco2torso)
+            self.postureProxy.goToPosture("StandInit", 1)
+            corrected_positiony = self.move_yaxis(cX)
+            if( corrected_positiony ):
+                return
+
+               
+
+          
+        else:
+            #Consecutive Iteration with no aruco model 
+            if self.current_state:
+                self.counterright = 0
+                self.counterleft = 0
+                self.current_state = False
+
+            else: 
+
+                self.counterright = self.counterright + 1
+                self.counterleft = self.counterleft + 1
+                #print(self.counterright)
+                if (self.counterright > 20):
+                    self.counterright = 0
+                    # [0.15583667159080505, -0.11708324402570724, 0.25175711512565613, 1.7100205421447754, -0.8724943995475769, -0.18669183552265167]
+                    PositionMatrixRight = [0.15583667159080505, -0.11708324402570724, 0.25175711512565613]
+                    OrientationMatrixRight = [1.7100205421447754, -0.8724943995475769, -0.18669183552265167]
+                    #Dont mind about the orientation matrix 
+                    Position6D = PositionMatrixRight + OrientationMatrixRight
+                    JointName = "RArm"
+                    space = motion.FRAME_TORSO
+
+                    # # print(Position6D)
+                    MaximumVelocity = 0.9
+                    # self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
+
+                if (self.counterleft > 20):
+                    self.counterleft = 0
+                    # [0.13588638603687286, 0.05417526513338089, 0.25502467155456543, -2.096224546432495, -1.0449066162109375, -0.30391818284988403]
+                    PositionMatrixLeft = [0.13588638603687286, 0.05417526513338089, 0.25502467155456543]
+                    OrientationMatrixLeft = [-2.096224546432495, -1.0449066162109375, -0.30391818284988403]
+                    #Dont mind about the orientation matrix 
+                    Position6D = PositionMatrixLeft + OrientationMatrixLeft
+                    JointName = "LArm"
+                    space = motion.FRAME_TORSO
+
+                    # # print(Position6D)
+                    MaximumVelocity = 0.9
+                    # self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
+
+                self.current_state = False
+            print(self.counterright)
+
+        cv2.imshow('Original Image',cv_image)
+        cv2.imshow('Track Image',frame)
+        key = cv2.waitKey(1)
 
 
+    def track_aruco(self):
+        try:
+
+            
+            rospy.Subscriber("/nao_robot/camera/bottom/camera/image_raw", Image, self.get_frame)
+            self.postureProxy.goToPosture("StandInit", 0.5)
+            cv2.imshow()
+            return True
+    
+        except Exception as e:
+                print(e)
+                print("Move joints failed")
+                return False
 
     def move_joints_server(self, needs_node):
         if needs_node:
@@ -404,7 +571,7 @@ class MovetoTarget(object):
         self.postureProxy.goToPosture("StandInit", 0.5)
         rospy.sleep(2)
         if needs_node:
-            mode = raw_input("choose right or left movement, r/l/c \n")
+            mode = raw_input("choose right or left movement, r/l/c/t \n")
             print(mode)
             if mode == 'l':
                 self.Left_Hand_Movement()
@@ -413,8 +580,9 @@ class MovetoTarget(object):
             elif mode =='c':
                 self.Right_Hand_MovementLeft()
 
+            # Test mode to be deleted later 
             elif mode == 't':
-                self.postureProxy.goToPosture("StandZero", 0.5)
+                self.track_aruco()
 
 
             else:

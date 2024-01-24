@@ -27,7 +27,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-catkin_install_python(PROGRAMS ./script/pick_place_service.py
+catkin_install_python(PROGRAMS ./script/uno-engine.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")

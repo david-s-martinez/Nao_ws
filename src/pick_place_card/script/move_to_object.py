@@ -271,7 +271,23 @@ class MovetoTarget(object):
                     print("Move joints failed")
                     return False
 
-            
+    def move_head_Start(self):
+        #Head Motion at the beginning of the game 
+        try:
+            JointNameH = 'Head'
+            space = motion.FRAME_TORSO
+            MaximumVelocity = 0.4
+            Position6D_Head = [0.0, 0.0, 0.1264999955892563, 0.0, 0.43561410903930664, 0.33743810653686523]
+            self.motionProxy.setPosition(JointNameH, space, Position6D_Head, MaximumVelocity, 63)
+            print('Head Rotation')
+            rospy.sleep(2)  
+            Position6D_Head = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            self.motionProxy.setPosition(JointNameH, space, Position6D_Head, MaximumVelocity, 63)  
+        except Exception as e:
+            print(e)
+            print("Head Movement failed")
+            return False   
+        
     def move_to_Object(self):
         try:
             #Middle Low Picked 
@@ -300,21 +316,85 @@ class MovetoTarget(object):
             print("Move to Target failed")
             return False
         
-    def move_yaxis(self, cX):
+    def move_yaxis(self, cX, cY):
         try: 
-            if cX < 260:
-                self.nao_walk(x= 0, y = (cX - 269)*0.001, theta = 0.0)
-                corrected_y = False
+            # if cX < 265 and cY < 45:
+            #     self.nao_walk(x= 0.0, y = -0.01, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.nao_walk(x= 0.01, y = 0.0, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            #     corrected_y = False
 
-            elif cX > 275:
-                self.nao_walk(x= 0, y = (cX - 269)*0.001 , theta = 0.0)
-                corrected_y = False
-            else: 
-                self.postureProxy.goToPosture("StandInit", 1)
-                corrected_y = True
+            # elif cX > 275 and cY > 55:
+            #     self.nao_walk(x= 0.0, y = 0.01, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.nao_walk(x= -0.01, y = 0.0, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            #     corrected_y = False
+
+            # elif cX > 275 and cY < 45:
+            #     self.nao_walk(x= 0.0, y = -0.01, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.nao_walk(x= -0.01, y = 0.0, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            #     corrected_y = False   
+
+            # elif cX < 265 and cY > 55:
+            #     self.nao_walk(x= 0.0, y = 0.01, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.nao_walk(x= 0.01, y = 0.0, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            #     corrected_y = False 
+
+            # elif cX < 265:
+            #     self.nao_walk(x= 0.0, y = 0.01, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            # elif cX > 275:
+            #     self.nao_walk(x= 0.0, y = -0.01, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            # elif cY > 55:
+            #     self.nao_walk(x= -0.01, y = 0.0, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            #     corrected_y = False
+            # elif cY < 45:
+            #     self.nao_walk(x= 0.01, y = 0.0, theta = 0.0)
+            #     rospy.sleep(1)
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            #     corrected_y = False
+            # else: 
+            #     self.postureProxy.goToPosture("StandInit", 1)
+            #     corrected_y = True
             
-            return corrected_y
-        
+            # return corrected_y
+
+            #Based on NAO documentation 
+            image_xcenter = 640 / 2.0
+            image_ycenter = 480 / 2.0
+
+
+            #Calculate the displacement between the centroid of the ArUco and the center of the image
+            dx =  image_xcenter - cX
+            dy = cY - image_ycenter 
+            print(dx,dy)
+
+            # Find the angle using the horizontal and vertical fov mapping (Nao's documentation)
+
+            yaw_angle = (dx/640 ) * 60.9
+            pitch_angle = (dy / 480 ) * 47.6
+            names = [ 'HeadYaw', 'HeadPitch']
+            angles = [yaw_angle*almath.TO_RAD, pitch_angle*almath.TO_RAD]
+            fractionMaxSpeed = 0.1
+            self.motionProxy.setAngles(names, angles, fractionMaxSpeed)
+
+            
+
         except Exception as e:
             print(e)
             print("Move to Target failed")
@@ -463,8 +543,9 @@ class MovetoTarget(object):
             cY = int((top_left[1] + bottom_right[1]) / 2.0)
             #print(len(corners),cX,cY)
             print('Centroid: ')
-            print(cX,cY)
-            print(frame.shape)
+            
+            # print(cX,cY)
+            # print(frame.shape)
 
             aruco_flip = np.eye(4)
             aruco_flip[2,2] = aruco_flip[2,2]#*-1
@@ -492,14 +573,30 @@ class MovetoTarget(object):
             tvec_col = aruco_corrected[:,-1]
             aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
             aruco_det.broadcast_marker_transform(rvec, aruco2torso)
-            self.postureProxy.goToPosture("StandInit", 1)
-            corrected_positiony = self.move_yaxis(cX)
-            if( corrected_positiony ):
-                return
+            
+            #Based on NAO documentation 
+            image_x = 50
+            image_y = 269
 
-               
 
-          
+            #Calculate the displacement between the centroid of the ArUco and the center of the image
+            dx =  image_x - cX
+            dy = cY - image_y
+            # print(dx,dy)
+
+            # Find the angle using the horizontal and vertical fov mapping (Nao's documentation)
+
+            desired_matrix =   [[-0.99969168 , 0.00926312 , 0.02303767 ,-0.34885616],
+                                [ 0.02339162 , 0.66255697 , 0.74864618 , 0.1894097 ],
+                                [-0.00832897 , 0.74895425 ,-0.66256937 , 6.67519127]]
+            
+            rmat,_ = cv2.Rodrigues(rvec)
+            tmat = np.array(tvec).reshape((3,1))
+
+            current_pose = np.hstack((rmat,tmat))
+            # print(current_pose)
+
+            # self.nao_walk(x= dx*0.001, y = dy*0.001, theta = 0.0)
         else:
             #Consecutive Iteration with no aruco model 
             if self.current_state:
@@ -550,10 +647,9 @@ class MovetoTarget(object):
 
     def track_aruco(self):
         try:
-
+                       
             
             rospy.Subscriber("/nao_robot/camera/bottom/camera/image_raw", Image, self.get_frame)
-            self.postureProxy.goToPosture("StandInit", 0.5)
             cv2.imshow()
             return True
     
@@ -582,6 +678,7 @@ class MovetoTarget(object):
 
             # Test mode to be deleted later 
             elif mode == 't':
+
                 self.track_aruco()
 
 

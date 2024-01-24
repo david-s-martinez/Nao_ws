@@ -90,6 +90,8 @@ class ArucoDetection:
 
         self.tf_broadcaster.sendTransform((tvec[0]/100,tvec[1]/100,tvec[2]/100 ), tf.transformations.quaternion_from_euler(0, 0, 0), rospy.Time.now(), "aruco_marker", self.reference_frame)
 
+        
+
 
 
 
@@ -556,337 +558,337 @@ class JointControl(object):
         rospy.spin()
 
 
-class JointControl(object):
+# class JointControl(object):
 
-    def __init__(self, robotIP = "10.152.246.180", PORT = 9559):
-        self.counterright = 0
-        self.counterleft = False
-        self.current_state = 1
-        self.motionProxy = ALProxy("ALMotion", robotIP, PORT)
-        call_enable_body_stiffness_service()
-        self.move_joints_server()
+#     def __init__(self, robotIP = "10.152.246.180", PORT = 9559):
+#         self.counterright = 0
+#         self.counterleft = False
+#         self.current_state = 1
+#         self.motionProxy = ALProxy("ALMotion", robotIP, PORT)
+#         call_enable_body_stiffness_service()
+#         self.move_joints_server()
 
 
-    #Exercise 1 - 2
-    def move_LArm_home(self, req):
-        try:
-            # [0.21803319454193115, -0.10038279742002487, 0.11985749006271362, 0.014173304662108421, -0.1308259218931198, 0.07646903395652771]
-            JointName = 'LArm'
-            space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
-            useSensorValues = True  #If true, the sensor values will be used to determine the position.
-            Position6D = self.motionProxy.getPosition(JointName, space, useSensorValues)
-            return (Position6D,)
-        except Exception as e:
-            print(e)
-            print("Move joints failed")
-            return False
+#     #Exercise 1 - 2
+#     def move_LArm_home(self, req):
+#         try:
+#             # [0.21803319454193115, -0.10038279742002487, 0.11985749006271362, 0.014173304662108421, -0.1308259218931198, 0.07646903395652771]
+#             JointName = 'LArm'
+#             space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
+#             useSensorValues = True  #If true, the sensor values will be used to determine the position.
+#             Position6D = self.motionProxy.getPosition(JointName, space, useSensorValues)
+#             return (Position6D,)
+#         except Exception as e:
+#             print(e)
+#             print("Move joints failed")
+#             return False
         
-    def do_transform(self, req):
-        try:
-            original_matrix = np.array([0.0, 0.0, 0.0])  # Example 3D vector
-            # Can be 'x', 'y', or 'z'
-            angle = 90  # Rotation angle in degrees
+#     def do_transform(self, req):
+#         try:
+#             original_matrix = np.array([0.0, 0.0, 0.0])  # Example 3D vector
+#             # Can be 'x', 'y', or 'z'
+#             angle = 90  # Rotation angle in degrees
 
-            rotated_matrix = rotate_matrix(original_matrix, 'z', angle)
-            final_matrix = rotate_matrix(rotated_matrix, 'x', angle)
-            camera_bottom2torso = self.HomogeneousTransformation(name  = "CameraBottom")
-            camera_bottomOF2torso = np.matmul(final_matrix, camera_bottom2torso)
-            print(camera_bottomOF2torso)
-            JointName = 'LArm'
-            space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
-            useSensorValues = True  #If true, the sensor values will be used to determine the position.
-            Position6D = self.motionProxy.getPosition(JointName, space, useSensorValues)
-            return (Position6D,)
-        except Exception as e:
-            print(e)
-            print("Move joints failed")
-            return False
+#             rotated_matrix = rotate_matrix(original_matrix, 'z', angle)
+#             final_matrix = rotate_matrix(rotated_matrix, 'x', angle)
+#             camera_bottom2torso = self.HomogeneousTransformation(name  = "CameraBottom")
+#             camera_bottomOF2torso = np.matmul(final_matrix, camera_bottom2torso)
+#             print(camera_bottomOF2torso)
+#             JointName = 'LArm'
+#             space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
+#             useSensorValues = True  #If true, the sensor values will be used to determine the position.
+#             Position6D = self.motionProxy.getPosition(JointName, space, useSensorValues)
+#             return (Position6D,)
+#         except Exception as e:
+#             print(e)
+#             print("Move joints failed")
+#             return False
         
-        #Exercise 1 - 2
-    def joint_cartesian_coordinates(self, req):
-        try:
-            # self.motionProxy.setStiffnesses("Head", 1.0)
-            JointName = req.JointName
-            space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
-            useSensorValues = True  #If true, the sensor values will be used to determine the position.
-            Position6D = self.motionProxy.getPosition(JointName, space, useSensorValues)
-            # self.motionProxy.setStiffnesses("Head", 0.0)
-            return (Position6D,)
-        except Exception as e:
-            print(e)
-            print("Move joints failed")
-            return False
+#         #Exercise 1 - 2
+#     def joint_cartesian_coordinates(self, req):
+#         try:
+#             # self.motionProxy.setStiffnesses("Head", 1.0)
+#             JointName = req.JointName
+#             space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
+#             useSensorValues = True  #If true, the sensor values will be used to determine the position.
+#             Position6D = self.motionProxy.getPosition(JointName, space, useSensorValues)
+#             # self.motionProxy.setStiffnesses("Head", 0.0)
+#             return (Position6D,)
+#         except Exception as e:
+#             print(e)
+#             print("Move joints failed")
+#             return False
         
-    #Exercise 1 - 3
-    def joint_cartesian_coordinates_displacement(self, req):
-        try:
+#     #Exercise 1 - 3
+#     def joint_cartesian_coordinates_displacement(self, req):
+#         try:
 
-            # self.motionProxy.setStiffnesses("Head", 1.0)
-            JointName = req.JointName
-            PositionMatrix = req.PositionMatrix
-            OrientationMatrix = req.OrientationMatrix
-            Position6D = PositionMatrix + OrientationMatrix
-            MaximumVelocity = req.MaximumVelocity
-            ExecutionTime = req.ExecutionTime
-            space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
-            useSensorValues = True  #If true, the sensor values will be used to determine the position.
-            # print("Keep the value of the orientation matrix empty if you don#t want to specify them")
-            # print("Would you like to specify the desired fraction of maximal velocity or the desired execution time?")
-            # desired_mode = print(" Please press V for maximal velocity and T for execution time.")
+#             # self.motionProxy.setStiffnesses("Head", 1.0)
+#             JointName = req.JointName
+#             PositionMatrix = req.PositionMatrix
+#             OrientationMatrix = req.OrientationMatrix
+#             Position6D = PositionMatrix + OrientationMatrix
+#             MaximumVelocity = req.MaximumVelocity
+#             ExecutionTime = req.ExecutionTime
+#             space = motion.FRAME_TORSO   # Task space {FRAME_TORSO = 0, FRAME_WORLD = 1, FRAME_ROBOT = 2}.
+#             useSensorValues = True  #If true, the sensor values will be used to determine the position.
+#             # print("Keep the value of the orientation matrix empty if you don#t want to specify them")
+#             # print("Would you like to specify the desired fraction of maximal velocity or the desired execution time?")
+#             # desired_mode = print(" Please press V for maximal velocity and T for execution time.")
 
-            # if (desired_mode == 'V'): 
-            #     print("You chose to specify the fraction of maximal velocity")
+#             # if (desired_mode == 'V'): 
+#             #     print("You chose to specify the fraction of maximal velocity")
 
-            # axis mask = 7 if User Only specified the position
-            if (MaximumVelocity != 0.0 and OrientationMatrix == [0.0,0.0,0.0]):
-                self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 7)
-                print("Velocity not equal zero and Orientation Matrix 0 ")
-            elif (MaximumVelocity != 0.0 ):
-                self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
-                print("Velocity not equal zero")
-            # # axis mask = 63 if User specified the position and orientation
-            # elif (MaximumVelocity != 0):
-                #self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, Mask)
+#             # axis mask = 7 if User Only specified the position
+#             if (MaximumVelocity != 0.0 and OrientationMatrix == [0.0,0.0,0.0]):
+#                 self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 7)
+#                 print("Velocity not equal zero and Orientation Matrix 0 ")
+#             elif (MaximumVelocity != 0.0 ):
+#                 self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
+#                 print("Velocity not equal zero")
+#             # # axis mask = 63 if User specified the position and orientation
+#             # elif (MaximumVelocity != 0):
+#                 #self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, Mask)
 
-            # elif(desired_mode == 'T'):
-            #     print("You chose to specify the execution time")
+#             # elif(desired_mode == 'T'):
+#             #     print("You chose to specify the execution time")
             
-            # axis mask = 7 if User Only specified the position
-            elif (ExecutionTime != 0.0 and OrientationMatrix == [0.0,0.0,0.0]):
-                self.motionProxy.positionInterpolations(JointName, space, Position6D, 7, ExecutionTime)
-                print("Time not equal zero and Orientation Matrix 0 ")
-            elif (ExecutionTime != 0.0):
-                self.motionProxy.positionInterpolations(JointName, space, Position6D, 63, ExecutionTime)
-                print("Time not equal zero")
-            # axis mask = 63 if User specified the position and orientation
-            # elif (ExecutionTime != 0):
-            #     self.motionProxy.positionInterpolations(JointName, space, Position6D, 63, ExecutionTime)
+#             # axis mask = 7 if User Only specified the position
+#             elif (ExecutionTime != 0.0 and OrientationMatrix == [0.0,0.0,0.0]):
+#                 self.motionProxy.positionInterpolations(JointName, space, Position6D, 7, ExecutionTime)
+#                 print("Time not equal zero and Orientation Matrix 0 ")
+#             elif (ExecutionTime != 0.0):
+#                 self.motionProxy.positionInterpolations(JointName, space, Position6D, 63, ExecutionTime)
+#                 print("Time not equal zero")
+#             # axis mask = 63 if User specified the position and orientation
+#             # elif (ExecutionTime != 0):
+#             #     self.motionProxy.positionInterpolations(JointName, space, Position6D, 63, ExecutionTime)
 
-            return (Position6D,)
+#             return (Position6D,)
 
-        except Exception as e:
-            print(e)
-            print("Move joints failed")
-            return False
+#         except Exception as e:
+#             print(e)
+#             print("Move joints failed")
+#             return False
         
             
-    #Exercise 2 - 2 (TBD)
-    def ManualTransformation(self):
-        pass
+#     #Exercise 2 - 2 (TBD)
+#     def ManualTransformation(self):
+#         pass
                 
-    # Exercise 2 - 3 
-    def HomogeneousTransformation(self, name):
+#     # Exercise 2 - 3 
+#     def HomogeneousTransformation(self, name):
         
-        frame  = motion.FRAME_TORSO
-        useSensorValues  = True
-        result = self.motionProxy.getTransform(name, frame, useSensorValues)
-        # for i in range(0, 4):
-        #     for j in range(0, 4):
-        #         print(result[4*i + j], ',')
-        #     print('')
-        # rosrun tf tf_echo CameraBottom_optical_frame CameraBottom_frame
-        # print(result)
-        return np.array(result).reshape((4,4))
+#         frame  = motion.FRAME_TORSO
+#         useSensorValues  = True
+#         result = self.motionProxy.getTransform(name, frame, useSensorValues)
+#         # for i in range(0, 4):
+#         #     for j in range(0, 4):
+#         #         print(result[4*i + j], ',')
+#         #     print('')
+#         # rosrun tf tf_echo CameraBottom_optical_frame CameraBottom_frame
+#         # print(result)
+#         return np.array(result).reshape((4,4))
 
 
-    # def ArucotoTorsoTransform(self):
-    #     frame  = motion.FRAME_TORSO
-    #     useSensorValues  = True
-    #     result = self.motionProxy.getTransform(name, frame, useSensorValues)
-
-
-
-     # Callback function Aruco with set Angles 
-    def get_frame(self,data):
-        aruco_det = ArucoDetection()
-        bridge = CvBridge()
-        cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
-        frame, rvec, tvec, corners = aruco_det.detect_tags_3D(cv_image)
+#     # def ArucotoTorsoTransform(self):
+#     #     frame  = motion.FRAME_TORSO
+#     #     useSensorValues  = True
+#     #     result = self.motionProxy.getTransform(name, frame, useSensorValues)
 
 
 
-        #print(PositionOrientationInitial)
+#      # Callback function Aruco with set Angles 
+#     def get_frame(self,data):
+#         aruco_det = ArucoDetection()
+#         bridge = CvBridge()
+#         cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
+#         frame, rvec, tvec, corners = aruco_det.detect_tags_3D(cv_image)
 
-        if len(tvec)>0:
-            corner = corners[0][0]
-            corner = corner.reshape((4, 2))
-            (top_left, top_right, bottom_right, bottom_left) = corner 
-            top_left = (int(top_left[0]), int(top_left[1]))
-            top_right = (int(top_right[0]), int(top_right[1]))
-            bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
-            bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
 
-            # Compute centroid
-            cX = int((top_left[0] + bottom_right[0]) / 2.0)
-            cY = int((top_left[1] + bottom_right[1]) / 2.0)
-            print(len(corners),cX,cY)
 
-            aruco_flip = np.eye(4)
-            aruco_flip[2,2] = aruco_flip[2,2]#*-1
-            aruco_flip[:3,-1] = np.transpose(tvec)
-            original_matrix = np.array([0.0, 0.0, 0.0])  # Example 3D vector
-            angle = -90  # Rotation angle in degrees
-            rotated_matrix = rotate_matrix(original_matrix, 'x', angle)
-            sensor_corr = rotate_matrix(rotated_matrix, 'z', angle)
-            R_corr = np.eye(4)
+#         #print(PositionOrientationInitial)
 
-            #R_corr[:3, :3] = sensor_corr
-            R_corr[:3, :3] = sensor_corr
-            aruco_corrected = np.matmul(R_corr, aruco_flip)
-            angle = 90  # Rotation angle in degrees
+#         if len(tvec)>0:
+#             corner = corners[0][0]
+#             corner = corner.reshape((4, 2))
+#             (top_left, top_right, bottom_right, bottom_left) = corner 
+#             top_left = (int(top_left[0]), int(top_left[1]))
+#             top_right = (int(top_right[0]), int(top_right[1]))
+#             bottom_right = (int(bottom_right[0]), int(bottom_right[1]))
+#             bottom_left = (int(bottom_left[0]), int(bottom_left[1]))
 
-            # Can be 'x', 'y', or 'z'
-            rotated_matrix = rotate_matrix(original_matrix, 'z', angle)
-            final_matrix = rotate_matrix(rotated_matrix, 'x', angle)
-            R = np.eye(4)
-            R[:3, :3] = final_matrix
+#             # Compute centroid
+#             cX = int((top_left[0] + bottom_right[0]) / 2.0)
+#             cY = int((top_left[1] + bottom_right[1]) / 2.0)
+#             print(len(corners),cX,cY)
 
-            camera_bottom2torso = self.HomogeneousTransformation(name  = "CameraBottom")
-            camera_bottomOF2torso = np.matmul(camera_bottom2torso, R)
+#             aruco_flip = np.eye(4)
+#             aruco_flip[2,2] = aruco_flip[2,2]#*-1
+#             aruco_flip[:3,-1] = np.transpose(tvec)
+#             original_matrix = np.array([0.0, 0.0, 0.0])  # Example 3D vector
+#             angle = -90  # Rotation angle in degrees
+#             rotated_matrix = rotate_matrix(original_matrix, 'x', angle)
+#             sensor_corr = rotate_matrix(rotated_matrix, 'z', angle)
+#             R_corr = np.eye(4)
 
-            tvec_col = aruco_corrected[:,-1]
-            aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
-            aruco_det.broadcast_marker_transform(rvec, aruco2torso)
-            if cX < 265:
+#             #R_corr[:3, :3] = sensor_corr
+#             R_corr[:3, :3] = sensor_corr
+#             aruco_corrected = np.matmul(R_corr, aruco_flip)
+#             angle = 90  # Rotation angle in degrees
+
+#             # Can be 'x', 'y', or 'z'
+#             rotated_matrix = rotate_matrix(original_matrix, 'z', angle)
+#             final_matrix = rotate_matrix(rotated_matrix, 'x', angle)
+#             R = np.eye(4)
+#             R[:3, :3] = final_matrix
+
+#             camera_bottom2torso = self.HomogeneousTransformation(name  = "CameraBottom")
+#             camera_bottomOF2torso = np.matmul(camera_bottom2torso, R)
+
+#             tvec_col = aruco_corrected[:,-1]
+#             aruco2torso = np.matmul(camera_bottomOF2torso,tvec_col)
+#             aruco_det.broadcast_marker_transform(rvec, aruco2torso)
+#             if cX < 265:
                 
-                #print(aruco2torso)
+#                 #print(aruco2torso)
 
-                # Move Right Arm 
-                #We got these numbers using the getPosition function for RArm and setting the robot 
-                #when  stiffness was disabled to the intial position desired
-                #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
-
-
-                # UNCOMMENT THIS 
-                OrientationMatrixRight = [2.4088447093963623, 0.2626517415046692, 0.14893914759159088]
-                PositionMatrixMovementRight = [0.21285086870193481, -aruco2torso[0]/100,-aruco2torso[1]/100]
-                #Dont mind about the orientation matrix 
-                Position6DRight = PositionMatrixMovementRight + OrientationMatrixRight
-                JointName = "RArm"
-                space = motion.FRAME_TORSO
-                # MaximumVelocity = 0.1
-                # # print(Position6D)
-                MaximumVelocity = 0.9
-                self.motionProxy.setPosition(JointName, space, Position6DRight, MaximumVelocity, 7)
-                #print(Position6D)
-
-            else:
-                # Move Left Arm 
-                #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
-                OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
-                PositionMatrixMovementLeft = [0.20665521919727325, aruco2torso[0]/100,-aruco2torso[1]/100]
-                #Dont mind about the orientation matrix 
-                Position6DLeft = PositionMatrixMovementLeft + OrientationMatrixLeft
-                JointName = "LArm"
-                space = motion.FRAME_TORSO
-                # MaximumVelocity = 0.1
-                # # print(Position6D)
-                MaximumVelocity = 0.9
-                self.motionProxy.setPosition(JointName, space, Position6DLeft, MaximumVelocity, 7)
-                self.current_state = True
+#                 # Move Right Arm 
+#                 #We got these numbers using the getPosition function for RArm and setting the robot 
+#                 #when  stiffness was disabled to the intial position desired
+#                 #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
 
 
-        else:
-            #Consecutive Iteration with no aruco model 
-            if self.current_state:
-                self.counterright = 0
-                self.counterleft = 0
-                self.current_state = False
+#                 # UNCOMMENT THIS 
+#                 OrientationMatrixRight = [2.4088447093963623, 0.2626517415046692, 0.14893914759159088]
+#                 PositionMatrixMovementRight = [0.21285086870193481, -aruco2torso[0]/100,-aruco2torso[1]/100]
+#                 #Dont mind about the orientation matrix 
+#                 Position6DRight = PositionMatrixMovementRight + OrientationMatrixRight
+#                 JointName = "RArm"
+#                 space = motion.FRAME_TORSO
+#                 # MaximumVelocity = 0.1
+#                 # # print(Position6D)
+#                 MaximumVelocity = 0.9
+#                 self.motionProxy.setPosition(JointName, space, Position6DRight, MaximumVelocity, 7)
+#                 #print(Position6D)
 
-            else: 
+#             else:
+#                 # Move Left Arm 
+#                 #PositionMatrix = [0.2159005105495453, -0.1264217495918274, 0.08577144145965576]
+#                 OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
+#                 PositionMatrixMovementLeft = [0.20665521919727325, aruco2torso[0]/100,-aruco2torso[1]/100]
+#                 #Dont mind about the orientation matrix 
+#                 Position6DLeft = PositionMatrixMovementLeft + OrientationMatrixLeft
+#                 JointName = "LArm"
+#                 space = motion.FRAME_TORSO
+#                 # MaximumVelocity = 0.1
+#                 # # print(Position6D)
+#                 MaximumVelocity = 0.9
+#                 self.motionProxy.setPosition(JointName, space, Position6DLeft, MaximumVelocity, 7)
+#                 self.current_state = True
 
-                self.counterright = self.counterright + 1
-                self.counterleft = self.counterleft + 1
-                #print(self.counterright)
-                if (self.counterright > 20):
-                    self.counterright = 0
-                    # [0.15583667159080505, -0.11708324402570724, 0.25175711512565613, 1.7100205421447754, -0.8724943995475769, -0.18669183552265167]
-                    PositionMatrixRight = [0.15583667159080505, -0.11708324402570724, 0.25175711512565613]
-                    OrientationMatrixRight = [1.7100205421447754, -0.8724943995475769, -0.18669183552265167]
-                    #Dont mind about the orientation matrix 
-                    Position6D = PositionMatrixRight + OrientationMatrixRight
-                    JointName = "RArm"
-                    space = motion.FRAME_TORSO
 
-                    # # print(Position6D)
-                    MaximumVelocity = 0.9
-                    self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
+#         else:
+#             #Consecutive Iteration with no aruco model 
+#             if self.current_state:
+#                 self.counterright = 0
+#                 self.counterleft = 0
+#                 self.current_state = False
 
-                if (self.counterleft > 20):
-                    self.counterleft = 0
-                    # [0.13588638603687286, 0.05417526513338089, 0.25502467155456543, -2.096224546432495, -1.0449066162109375, -0.30391818284988403]
-                    PositionMatrixLeft = [0.13588638603687286, 0.05417526513338089, 0.25502467155456543]
-                    OrientationMatrixLeft = [-2.096224546432495, -1.0449066162109375, -0.30391818284988403]
-                    #Dont mind about the orientation matrix 
-                    Position6D = PositionMatrixLeft + OrientationMatrixLeft
-                    JointName = "LArm"
-                    space = motion.FRAME_TORSO
+#             else: 
 
-                    # # print(Position6D)
-                    MaximumVelocity = 0.9
-                    self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
+#                 self.counterright = self.counterright + 1
+#                 self.counterleft = self.counterleft + 1
+#                 #print(self.counterright)
+#                 if (self.counterright > 20):
+#                     self.counterright = 0
+#                     # [0.15583667159080505, -0.11708324402570724, 0.25175711512565613, 1.7100205421447754, -0.8724943995475769, -0.18669183552265167]
+#                     PositionMatrixRight = [0.15583667159080505, -0.11708324402570724, 0.25175711512565613]
+#                     OrientationMatrixRight = [1.7100205421447754, -0.8724943995475769, -0.18669183552265167]
+#                     #Dont mind about the orientation matrix 
+#                     Position6D = PositionMatrixRight + OrientationMatrixRight
+#                     JointName = "RArm"
+#                     space = motion.FRAME_TORSO
 
-                self.current_state = False
-            print(self.counterright)
+#                     # # print(Position6D)
+#                     MaximumVelocity = 0.9
+#                     self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
 
-        cv2.imshow('Original Image',cv_image)
-        cv2.imshow('Track Image',frame)
-        key = cv2.waitKey(1)
+#                 if (self.counterleft > 20):
+#                     self.counterleft = 0
+#                     # [0.13588638603687286, 0.05417526513338089, 0.25502467155456543, -2.096224546432495, -1.0449066162109375, -0.30391818284988403]
+#                     PositionMatrixLeft = [0.13588638603687286, 0.05417526513338089, 0.25502467155456543]
+#                     OrientationMatrixLeft = [-2.096224546432495, -1.0449066162109375, -0.30391818284988403]
+#                     #Dont mind about the orientation matrix 
+#                     Position6D = PositionMatrixLeft + OrientationMatrixLeft
+#                     JointName = "LArm"
+#                     space = motion.FRAME_TORSO
 
-    def track_aruco(self, req):
-        try:
-            start = req.start
-            if start == True:
-            # Set Arm to Initial Position (if no marker detected hand goes back to this position)
-                JointName = "RArm"
-                space = motion.FRAME_TORSO
-                useSensorValues = True 
-                #We got these numbers using the getPosition function for RArm and setting the robot 
-                #when  stiffness was disabled to the intial position desired
-                PositionMatrixRight = [0.21285086870193481, -0.0711820125579834, 0.05464955419301987]
-                OrientationMatrixRight = [2.4088447093963623, 0.2626517415046692, 0.14893914759159088]
-                PositionOrientationInitialRight = PositionMatrixRight + OrientationMatrixRight
-                ExecutionTime = 1.0
-                self.motionProxy.positionInterpolations(JointName, space, PositionOrientationInitialRight, 63, ExecutionTime)
+#                     # # print(Position6D)
+#                     MaximumVelocity = 0.9
+#                     self.motionProxy.setPosition(JointName, space, Position6D, MaximumVelocity, 63)
 
-                JointName = "LArm"
-                space = motion.FRAME_TORSO
-                useSensorValues = True 
-                #We got these numbers using the getPosition function for RArm and setting the robot 
-                #when  stiffness was disabled to the intial position desired
-                PositionMatrixLeft = [0.20665521919727325, 0.04261146858334541, 0.06911896169185638]
-                OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
-                PositionOrientationInitialLeft = PositionMatrixLeft + OrientationMatrixLeft
-                ExecutionTime = 1.0
-                # self.motionProxy.positionInterpolations(JointName, space, PositionOrientationInitialLeft, 63, ExecutionTime)
-                rospy.Subscriber("/nao_robot/camera/bottom/camera/image_raw", Image, self.get_frame)
-                rospy.spin()
-            return True
+#                 self.current_state = False
+#             print(self.counterright)
+
+#         cv2.imshow('Original Image',cv_image)
+#         cv2.imshow('Track Image',frame)
+#         key = cv2.waitKey(1)
+
+#     def track_aruco(self, req):
+#         try:
+#             start = req.start
+#             if start == True:
+#             # Set Arm to Initial Position (if no marker detected hand goes back to this position)
+#                 JointName = "RArm"
+#                 space = motion.FRAME_TORSO
+#                 useSensorValues = True 
+#                 #We got these numbers using the getPosition function for RArm and setting the robot 
+#                 #when  stiffness was disabled to the intial position desired
+#                 PositionMatrixRight = [0.21285086870193481, -0.0711820125579834, 0.05464955419301987]
+#                 OrientationMatrixRight = [2.4088447093963623, 0.2626517415046692, 0.14893914759159088]
+#                 PositionOrientationInitialRight = PositionMatrixRight + OrientationMatrixRight
+#                 ExecutionTime = 1.0
+#                 self.motionProxy.positionInterpolations(JointName, space, PositionOrientationInitialRight, 63, ExecutionTime)
+
+#                 JointName = "LArm"
+#                 space = motion.FRAME_TORSO
+#                 useSensorValues = True 
+#                 #We got these numbers using the getPosition function for RArm and setting the robot 
+#                 #when  stiffness was disabled to the intial position desired
+#                 PositionMatrixLeft = [0.20665521919727325, 0.04261146858334541, 0.06911896169185638]
+#                 OrientationMatrixLeft = [-1.630082368850708, 0.01825663261115551, -0.29127994179725647]
+#                 PositionOrientationInitialLeft = PositionMatrixLeft + OrientationMatrixLeft
+#                 ExecutionTime = 1.0
+#                 # self.motionProxy.positionInterpolations(JointName, space, PositionOrientationInitialLeft, 63, ExecutionTime)
+#                 rospy.Subscriber("/nao_robot/camera/bottom/camera/image_raw", Image, self.get_frame)
+#                 rospy.spin()
+#             return True
             
-        except Exception as e:
-            print(e)
-            print("Move joints failed")
-            return False
-    def move_joints_server(self):
-        rospy.init_node('move_joints_server')
-        service1 = rospy.Service('joint_cartesian_CordOr', CartesianPositionOrientation, self.joint_cartesian_coordinates)
-        service2 = rospy.Service('joint_cartesian_CordOr_movement', MoveJoints, self.joint_cartesian_coordinates_displacement)
-        service3 = rospy.Service('move_LArm_home', CartesianPositionOrientation, self.move_LArm_home)
-        service4 = rospy.Service('track_aruco', TrackAruco, self.track_aruco)
-        service5 = rospy.Service('do_transform', CartesianPositionOrientation, self.do_transform)
-        print("Ready to move joints.")
-        rospy.spin()
+#         except Exception as e:
+#             print(e)
+#             print("Move joints failed")
+#             return False
+#     def move_joints_server(self):
+#         rospy.init_node('move_joints_server')
+#         service1 = rospy.Service('joint_cartesian_CordOr', CartesianPositionOrientation, self.joint_cartesian_coordinates)
+#         service2 = rospy.Service('joint_cartesian_CordOr_movement', MoveJoints, self.joint_cartesian_coordinates_displacement)
+#         service3 = rospy.Service('move_LArm_home', CartesianPositionOrientation, self.move_LArm_home)
+#         service4 = rospy.Service('track_aruco', TrackAruco, self.track_aruco)
+#         service5 = rospy.Service('do_transform', CartesianPositionOrientation, self.do_transform)
+#         print("Ready to move joints.")
+#         rospy.spin()
 
-# 	('Rotated Matrix:', array([[  6.12323400e-17,   0.00000000e+00,   1.00000000e+00],
-#    [  1.00000000e+00,   6.12323400e-17,  -6.12323400e-17],
-#    [ -6.12323400e-17,   1.00000000e+00,   3.74939946e-33]]))
+# # 	('Rotated Matrix:', array([[  6.12323400e-17,   0.00000000e+00,   1.00000000e+00],
+# #    [  1.00000000e+00,   6.12323400e-17,  -6.12323400e-17],
+# #    [ -6.12323400e-17,   1.00000000e+00,   3.74939946e-33]]))
 
-if __name__ == '__main__':
-    # motionProxy = ALProxy("ALMotion", robotIP, PORT)
-    # rospy.init_node('move_joints_server')
-    # rospy.spin()
-    robotIP=str(sys.argv[1])
-    PORT=int(sys.argv[2])
-    # print sys.argv[2]
+# if __name__ == '__main__':
+#     # motionProxy = ALProxy("ALMotion", robotIP, PORT)
+#     # rospy.init_node('move_joints_server')
+#     # rospy.spin()
+#     robotIP=str(sys.argv[1])
+#     PORT=int(sys.argv[2])
+#     # print sys.argv[2]
  
-    jc = JointControl(robotIP,PORT)
+#     jc = JointControl(robotIP,PORT)

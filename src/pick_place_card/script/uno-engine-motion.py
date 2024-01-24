@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import random
 import time
+
 from move_to_object import MovetoTarget
 from naoqi_bridge_msgs.msg import SpeechWithFeedbackActionGoal,WordRecognized
 import rospy
@@ -142,7 +143,30 @@ def main():
         event_type = 'starter'
         nao_talk.run_speech(event_type)
 
+        rospy.sleep(6)
 
+        nao_talk.run_given_speech('Can you help me put the cards', 5)
+        counter = 0 
+
+        #############################################################################
+        for counter_cards in range(7):
+
+        # Computer Vision Algorithm 
+            while nao_talk.bump.state == 0 :
+                pass
+            if nao_talk.bump.bumper == 0:
+                rospy.sleep(2)
+                print('Right foot pressed')
+                #card = get_top_card()
+           
+                #nao_hand.add_card(card) # i.e. append
+        print('Game Start')
+
+
+        rospy.sleep(5)
+        nao_move.move_head_Start()
+        #Nao Say lets start the game 
+        nao_talk.run_given_speech("Let's start!", 3)
         ###### Computer vision system integration here
         ### Let's say there is a function for detecting the cards
         #top_card = get_top_card()
@@ -154,11 +178,16 @@ def main():
 
         #deck.shuffle()
 
-        for i in range(7):
-            player_hand.add_card(deck.deal())
-        for i in range(7):
-            nao_hand.add_card(deck.deal())
-            # nao_move.Right_Hand_MovementLeft()
+        turn = choose_first()
+        if turn == 'NAO':
+            #NAO SPEECH 
+            say = str( "I will go first")
+            
+        else:
+             print(+ ' You go first')
+        nao_talk.run_given_speech(say,3)
+
+
 
         top_card = deck.deal()
         if top_card.cardtype != 'number':
@@ -173,11 +202,9 @@ def main():
         nao_talk.run_given_speech(say,3)
         playing = True
 
-        turn = choose_first()
-        print(turn + ' will go first')
-        #NAO SPEECH 
-        say = str(str(turn) + "will go first")
-        nao_talk.run_given_speech(say,3)
+     
+
+        
 
 
         while playing:

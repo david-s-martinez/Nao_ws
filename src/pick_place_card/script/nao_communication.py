@@ -3,7 +3,7 @@
 import rospy
 from std_msgs.msg import Bool
 from std_msgs.msg import String
-from naoqi_bridge_msgs.msg import HeadTouch,SetSpeechVocabularyActionGoal, WordRecognized, SpeechWithFeedbackActionGoal
+from naoqi_bridge_msgs.msg import HeadTouch,SetSpeechVocabularyActionGoal, WordRecognized, SpeechWithFeedbackActionGoal, Bumper
 from std_srvs.srv import Empty
 from collections import Counter
 from naoqi import ALProxy
@@ -25,6 +25,9 @@ class NAOCommunicate:
         self.vocab_pub = rospy.Publisher('/speech_vocabulary_action/goal',SetSpeechVocabularyActionGoal, queue_size=10)
         self.head = HeadTouch(0,0)
         self.head_sub = rospy.Subscriber("/tactile_touch", HeadTouch, self.headtouch_callback)
+        self.bumper_sub = rospy.Subscriber("/bumper", Bumper, self.bumper_callback)
+        self.bumper = None
+
         self.talk_phrases = {
             'draw_cards': [
                 "Looks like you've got an armful there!",
@@ -188,8 +191,11 @@ class NAOCommunicate:
 
     def headtouch_callback(self, headtouch):
         self.head = headtouch
+
+    def bumper_callback(self, bump):
+        self.bump = bump
  
-            
+     
     def detect_message(self):
 
         continue_game = False

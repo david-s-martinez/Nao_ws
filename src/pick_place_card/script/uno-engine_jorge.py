@@ -44,7 +44,7 @@ class Card:
         if self.color == None:
             return self.rank
         else:
-            return self.color + " " + self.rank
+            return self.color + " " + selWildf.rank
 
 class NAOHand:
 
@@ -81,7 +81,7 @@ def choose_first():
     if random.randint(0,1)==0:
         return 'Player'
     else:
-        return 'NAO'
+        return 'NAO'Wild
 
 
 #Function to check if the card thrown by Player/NAO is a valid card by comparing it with the top card

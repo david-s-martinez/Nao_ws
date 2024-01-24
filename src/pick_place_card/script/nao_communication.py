@@ -148,11 +148,11 @@ class NAOCommunicate:
         # Add words to your vocabulary
         vocab_msg.goal.words.append("hit")
         vocab_msg.goal.words.append("pull")
-        vocab_msg.goal.words.append("yes")
-        vocab_msg.goal.words.append("no")
-        word_list = ['RED','GREEN','BLUE','YELLOW','0','1','2','3','4','5','6','7','8','9','Skip','Reverse','Draw2','Draw4','Wild']
-        for i in word_list:
-            vocab_msg.goal.words.append(i)
+        # vocab_msg.goal.words.append("yes")
+        # vocab_msg.goal.words.append("no")
+        # word_list = ['RED','GREEN','BLUE','YELLOW','0','1','2','3','4','5','6','7','8','9','Skip','Reverse','Draw2','Draw4','Wild']
+        # for i in word_list:
+        #     vocab_msg.goal.words.append(i)
 
         print(vocab_msg.goal.words)
         #rank = ()

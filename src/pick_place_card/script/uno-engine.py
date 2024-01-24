@@ -35,7 +35,7 @@ class Deck:
     def __init__(self):
         self.deck = []
         for clr in color:
-            for ran in rank:input
+            for ran in rank:
                 if ctype[ran] != 'action_nocolor':
                     self.deck.append(Card(clr, ran))
                     self.deck.append(Card(clr, ran))

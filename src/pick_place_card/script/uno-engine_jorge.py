@@ -18,7 +18,7 @@ def spin_thread():
     global stop_thread
     while not stop_thread:
         rospy.spin_once()
-        
+
 color = ('RED','GREEN','BLUE','YELLOW')
 rank = ('0','1','2','3','4','5','6','7','8','9','Skip','Reverse','Draw2','Draw4','Wild')
 ctype = {'0':'number','1':'number','2':'number','3':'number','4':'number','5':'number','6':'number',
@@ -148,10 +148,10 @@ def main():
     # while not rospy.is_shutdown():
     #     rate_sleep.sleep()
 
+
+
     while True:
         # empezar = nao_talk.listen_API("")
-        nao_talk.start_voice_recognition()
-
         # print(empezar)
         rospy.sleep(10)
         # NAO SPEECH 
@@ -169,7 +169,7 @@ def main():
         print('Welcome to UNO! Finish your cards first to win')
         
         nao_hand = NAOHand()
-        for i in range(6):        
+        for i in range(2):        
             nao_hand.add_card(deal_card())
         print("NAO's cards are:  ")
         nao_hand.cards_in_hand()
@@ -185,8 +185,15 @@ def main():
         say = str(str(turn) + "will go first")
         nao_talk.run_given_speech(say,3)
 
+
+    
+
+
         if turn == 'NAO':
             top_card = topcard()
+
+
+
 
         while playing:
             
@@ -203,9 +210,11 @@ def main():
                 # Touch Front of Head To Start  Listening 
                 # Check for events and perform actions accordingly
                
-                choice = nao_talk.listen_API("HP")
-                rospy.sleep(3)
+                choice, game_stat =   nao_talk.detect_message()
+                print(choice)
+                print(game_stat)
 
+               
                 if choice == 'Pull':
                     player_no_cards += 1
                     # NAO LISTEN

@@ -184,7 +184,8 @@ class MovetoTarget(object):
             self.motionProxy.setPosition(JointName, space, Position6D_GrabCard, 0.9, 63)
             print('Grab Card')
             rospy.sleep(2)
-            self.motionProxy.setPosition(JointName, space, Position6D_MoveUp2, 0.9, 63)
+            Position_Trial =  [0.21372699737548828, -0.11542697995901108, 0.1451791226863861, 0.082606740295887, -0.2623349130153656, 0.0008494996000081301]
+            self.motionProxy.setPosition(JointName, space, Position_Trial, 0.9, 63)
             print('Move Hand Up')
             rospy.sleep(1)
             Position6D_Look = [0.10344336926937103, -0.13088473677635193, 0.23385189473628998, 1.8361880779266357, -1.346941590309143, 0.46041110157966614]
@@ -238,7 +239,7 @@ class MovetoTarget(object):
                 self.motionProxy.setPosition(JointName, space, Position6D_MoveUp, MaximumVelocity, 63)
                 print('Move Hand Up')
                 rospy.sleep(2)
-                Position6D_MoveUp2 =[0.21727561950683594, -0.11308850347995758, 0.07528077065944672, 0.007104993797838688, 0.05709807947278023, 0.018436921760439873]
+                Position6D_MoveUp2 = [0.21799898147583008, -0.1084299087524414, 0.07960008829832077, -0.009287073276937008, 0.037209682166576385, 0.04144500941038132]
                 self.motionProxy.setPosition(JointName, space, Position6D_MoveUp2, MaximumVelocity, 63)
                 print('Move Hand Up 2')
                 rospy.sleep(2)
@@ -246,18 +247,17 @@ class MovetoTarget(object):
                 self.motionProxy.setPosition(JointName, space, Position6D_GrabCard, 0.9, 63)
                 print('Grab Card')
                 rospy.sleep(2)
-                self.motionProxy.setPosition(JointName, space, Position6D_MoveUp2, 0.9, 63)
+                Position_Trial =  [0.21372699737548828, -0.11542697995901108, 0.1451791226863861, 0.082606740295887, -0.2623349130153656, 0.0008494996000081301]
+                self.motionProxy.setPosition(JointName, space, Position_Trial, 0.9, 63)
                 print('Move Hand Up')
                 rospy.sleep(2)
-
-                # TO BE REVIST 
-                # Position6D_PoseCard = [0.2074972689151764, -0.11709271371364594, 0.0300961472094059, -0.030303819105029106, 0.23087380826473236, -0.01208456326276064]
-                # self.motionProxy.setPosition(JointName, space, Position6D_PoseCard, MaximumVelocity, 63)
-                # print('Intermediate Pose Card')
-                # rospy.sleep(2)
-                # Position6D_PoseCard2 = [0.16787540912628174, -0.10537949949502945, -0.03514806553721428, 0.1320430338382721, 0.41872236132621765, 0.09991656988859177]
-                # self.motionProxy.setPosition(JointName, space, Position6D_PoseCard2, MaximumVelocity, 63)
-                # print('Pose Card')
+                Position6D_PoseCard = [0.21205469965934753, -0.04830517619848251, 0.09707397222518921, 0.13737207651138306, -0.03729049488902092, 0.35286054015159607]
+                self.motionProxy.setPosition(JointName, space, Position6D_PoseCard, MaximumVelocity, 63)
+                print('Intermediate Pose Card')
+                rospy.sleep(2)
+                Position6D_PoseCard2 =  [0.18808002769947052, -0.03795960545539856, 0.005345016717910767, -0.018800245597958565, 0.3773193955421448, 0.4288717806339264]
+                self.motionProxy.setPosition(JointName, space, Position6D_PoseCard2, MaximumVelocity, 63)
+                print('Pose Card')
                 # rospy.sleep(5)
                 # Position6D_EndMovement = [0.08185836672782898, -0.04597493261098862, -0.0026721833273768425, 1.7218643426895142, 0.1917998343706131, 1.0842033624649048]
                 # self.motionProxy.setPosition(JointName, space, Position6D_EndMovement, MaximumVelocity, 63)
@@ -412,6 +412,10 @@ class MovetoTarget(object):
                 self.Right_Hand_MovementHead()
             elif mode =='c':
                 self.Right_Hand_MovementLeft()
+
+            elif mode == 't':
+                self.postureProxy.goToPosture("StandZero", 0.5)
+
 
             else:
                 print('Error')

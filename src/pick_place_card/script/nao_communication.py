@@ -67,23 +67,26 @@ class NAOCommunicate:
     
     def call_start_recognition(self):
         rospy.wait_for_service('/start_recognition')  
+        
         try:
             # Call the service with an empty request
             response = self.recog_start_srv()
-            
             # Process the response (empty for this service)
             print("Starting recognition.")
+            print(self.create_vocabulary())
+            rospy.sleep(5)
         except rospy.ServiceException as e:
             print("Service start_recognition failed", str(e))
 
-    def call_stop_recognition(self):
-        rospy.wait_for_service('/start_recognition')  
+    def call_stop_recognition(self, verbose=True):
+        rospy.wait_for_service('/stop_recognition')  
         try:
             # Call the service with an empty request
             response = self.recog_stop_srv()
             
             # Process the response (empty for this service)
-            print("Stopping recognition.")
+            if verbose:
+                print("Stopping recognition.")
         except rospy.ServiceException as e:
             print("Service stop_recognition failed", str(e))
 
@@ -104,9 +107,15 @@ class NAOCommunicate:
         self.vocab_pub.publish(vocab_msg)
         # Add words to your vocabulary
         vocab_msg.goal.words.append("hit")
-        vocab_msg.goal.words.append("go")
+        vocab_msg.goal.words.append("pull")
         vocab_msg.goal.words.append("yes")
         vocab_msg.goal.words.append("no")
+        word_list = ['RED','GREEN','BLUE','YELLOW','0','1','2','3','4','5','6','7','8','9','Skip','Reverse','Draw2','Draw4','Wild']
+        for i in word_list:
+            vocab_msg.goal.words.append(i)
+
+        print(vocab_msg.goal.words)
+        #rank = ()
         # Publish the vocabulary
         rospy.sleep(1)
         self.vocab_pub.publish(vocab_msg)
@@ -137,6 +146,32 @@ class NAOCommunicate:
 
     def headtouch_callback(self, headtouch):
         self.head = headtouch
+ 
+            
+    def detect_message(self):
+
+        continue_game = False
+        last_word = None
+        
+        while continue_game == False:
+        
+            if self.head.button is 1 and self.head.state is 1:
+                self.create_vocabulary()
+                self.call_start_recognition()
+            elif  self.head.button is 3 and self.head.state is 1:
+                self.call_stop_recognition(verbose=True)
+                
+            elif self.head.button is 2 and self.head.state is 1:
+                if self.recognized_words:
+                    last_word = self.recognized_words[-1]
+                    continue_game = True
+                self.call_stop_recognition()
+                break
+            else:
+                pass
+
+        return last_word, continue_game
+
 
     def run_speech(self, event_type):
 

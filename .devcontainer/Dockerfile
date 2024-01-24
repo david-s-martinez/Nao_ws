@@ -141,6 +141,9 @@ RUN sudo mkdir -p /home/hkouki/Downloads/openssl/ssl \
 
 # set team-specific settings in separate layer to speed up builds
 ENV NAO_IP "10.152.246.180"
+EXPOSE 11311
+# Set the ROS_MASTER_URI environment variable (optional, but can be useful)
+ENV ROS_MASTER_URI=http://localhost:11311
 # add ros to .bashrc so that its sourced in each terminal
 # RUN echo "source /opt/ros/kinetic/setup.bash" >> /home/$USERNAME/.bashrc
 

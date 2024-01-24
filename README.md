@@ -1,3 +1,47 @@
+To connect to a ROS Kinetic Master node running inside a Docker container from outside the container on the same computer, you need to set up network communication between the host machine and the Docker container. Here are the steps you can follow:
+
+1. **Expose ROS Master Port:**
+   In your Docker container, make sure that the port used by the ROS Master (default is 11311) is exposed. You can do this by either adding the `-p` option when running the container or by specifying it in the Dockerfile.
+
+   Example using the `-p` option:
+   ```bash
+   docker run -p 11311:11311 your_ros_kinetic_container
+   ```
+
+   Example in Dockerfile:
+   ```dockerfile
+   EXPOSE 11311
+   ```
+
+2. **Find the Host IP:**
+   Determine the IP address of your host machine. You can use the following command to find the IP address:
+
+   ```bash
+   ifconfig
+   ```
+
+   Look for the IP address associated with the network interface you are using.
+
+3. **Set ROS Master URI:**
+   Set the `ROS_MASTER_URI` environment variable on your ROS Noetic node to point to the ROS Kinetic Master node inside the Docker container. Replace `<HOST_IP>` with the actual IP address of your host machine.
+
+   ```bash
+   export ROS_MASTER_URI=http://<HOST_IP>:11311
+   ```
+
+   You may want to add this command to your `.bashrc` or a launch script to set the variable automatically.
+
+4. **Check Connection:**
+   After setting up the `ROS_MASTER_URI`, you should be able to communicate with the ROS Kinetic Master node from your ROS Noetic node. Test this by running a ROS command, such as:
+
+   ```bash
+   rostopic list
+   ```
+
+   You should see the list of topics published by the ROS Kinetic Master node.
+
+Keep in mind that both ROS Kinetic and ROS Noetic nodes need to be compatible for proper communication. Ensure that your nodes are using the same ROS version and that any message types being exchanged are compatible between the two versions.
+
 # HRS Lecture Workspace
 
 # Setup

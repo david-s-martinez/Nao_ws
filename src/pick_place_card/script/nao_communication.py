@@ -57,7 +57,31 @@ class NAOCommunicate:
             ],
             'throw_card' : [
                 "Hmm, Let me see which card to play",
-                "I think this card will do nicely",
+                "I think this card will do nicely"
+            ],
+            'draw2_card' : [ "Adding a little weight to your hand, I see!",
+                             "Looks like you're stocking up for winter!",
+                             "Two more for you! It's like a mini shopping spree.",
+                             "A pair of surprises, just for you!"
+
+            ],
+            'draw4_card' : [ "Four?! You're really going for the high score!",
+                            "That's quite a handful you're getting!",
+                            "Whoa, piling on the cards, aren't we?",
+                            "It's a card party, and you're the guest of honor!",
+                            "Four more cards? Hope you've got enough space!"
+
+            ],
+            'skip_card' : [ "Skipping your turn? I'll keep the game warm for you.",
+                            "A brief pause on your road to victory, I guess?",
+                            "Oh, skipping this round? More time to strategize!",
+                            "Taking a little break, are we?",
+                            "Skip! More like a small vacation, right?"
+            ],
+            'reverse_card' : ["Flipping the script, I see!",
+                              "Back we go! This is getting interesting.",
+                              "Reversing the flow, nice tactic!",
+                              "Changing directions? I can adapt!"
             ],
 
 
@@ -125,23 +149,28 @@ class NAOCommunicate:
         rospy.loginfo("Published new speech vocabulary.")
 
     def start_voice_recognition(self):
-        print('started voice recog')
-        self.create_vocabulary()
-        self.call_start_recognition()
-        rospy.sleep(3)
-        print('stopped voice recog')
-        self.call_stop_recognition()
 
-        # if self.head.button is 2 and self.head.state is 1:
-        #     print('started voice recog')
-        #     self.create_vocabulary()
-        #     self.call_start_recognition()
+        continue_game =False
+        last_word = None
+        while continue_game is False:
 
-        # if self.head.button is 3 and self.head.state is 1:
+            if self.head.button is 1 and self.head.stage is 1:
 
-        #     print('stopped voice recog')
-        #     self.call_stop_recognition()
-        #     self.sentence = []
+                print('started voice recog')
+                self.create_vocabulary()
+                self.call_start_recognition()
+
+            if self.head.button is 3 and self.head.stage is 1:
+
+                rospy.sleep(3)
+                print('stopped voice recog')
+                self.call_stop_recognition()
+
+            if self.head.button is 2 and self.head.stage is 1:
+                if self.recognized_words:
+                    last_word = self.recognized_words[-1]
+                    continue_game = True
+            return last_word, continue_game
         rospy.sleep(5)
 
     def headtouch_callback(self, headtouch):
@@ -189,3 +218,6 @@ class NAOCommunicate:
             # Publish the trash talk line
             self.speech_pub.publish(talk_msg)
             rospy.sleep(delay)
+
+
+

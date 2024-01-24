@@ -52,37 +52,50 @@ class NAOCommunicate:
                 "Ready to start the game, Can someone shuffle the cards?"
 
             ],
+
             'last_card_action' : [
                 "Last card cannot be an action card. Let me draw a card."
             ],
+
             'throw_card' : [
                 "Hmm, Let me see which card to play",
                 "I think this card will do nicely"
             ],
-            'draw2_card' : [ "Adding a little weight to your hand, I see!",
-                             "Looks like you're stocking up for winter!",
-                             "Two more for you! It's like a mini shopping spree.",
-                             "A pair of surprises, just for you!"
+
+            'draw2_card' : ["Double trouble coming your way!",
+                            "Looks like you're getting a couple more friends!",
+                            "Hope you're in the mood for more cards!",
+                            "Twice the cards, twice the fun, right?",
+                            "Two for you! Don't say I never give you anything."
 
             ],
-            'draw4_card' : [ "Four?! You're really going for the high score!",
-                            "That's quite a handful you're getting!",
-                            "Whoa, piling on the cards, aren't we?",
-                            "It's a card party, and you're the guest of honor!",
-                            "Four more cards? Hope you've got enough space!"
+            'draw4_card' : [ "Four more cards! It's your lucky day!",
+                            "Guess who's drawing four? Spoiler: It's you!",
+                            "Here's a little something extra for you!",
+                            "Four's a party, isn't it?",
+                            "I hope you've got room for four more!"
 
             ],
-            'skip_card' : [ "Skipping your turn? I'll keep the game warm for you.",
-                            "A brief pause on your road to victory, I guess?",
-                            "Oh, skipping this round? More time to strategize!",
-                            "Taking a little break, are we?",
-                            "Skip! More like a small vacation, right?"
+            'skip_card' : ["Oops, looks like you're taking a little break!",
+                           "Skip-a-dee-doo-dah, skip-a-dee-day, your turn is flying away!",
+                           "Not so fast! You're on pause.",
+                           "Hold on, we're skipping your turn!",
+                            "Looks like it's not your turn after all!"
             ],
-            'reverse_card' : ["Flipping the script, I see!",
-                              "Back we go! This is getting interesting.",
-                              "Reversing the flow, nice tactic!",
-                              "Changing directions? I can adapt!"
+            'reverse_card' : [  "Let's turn things around!",
+                                "Reverse! Time to change directions.",
+                                "And now for a little twist!",
+                                "Back it up, we're reversing!",
+                                "Time to go backwards, just for a bit!"
             ],
+            'wild_card' : [ "Wild card! I'm shaking things up!",
+                            "Time to spice things up with a wild card!",
+                            "Let's change the color, shall we?",
+                            "I'm feeling wild, let's mix it up!",
+                              "Wild times call for wild cards!"
+            ]
+
+
 
 
         }

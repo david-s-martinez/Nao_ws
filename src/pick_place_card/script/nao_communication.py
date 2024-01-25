@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import json
 from std_msgs.msg import Bool
 from std_msgs.msg import String
 from naoqi_bridge_msgs.msg import HeadTouch,SetSpeechVocabularyActionGoal, WordRecognized, SpeechWithFeedbackActionGoal, Bumper
@@ -26,7 +27,7 @@ class NAOCommunicate:
         self.head = HeadTouch(0,0)
         self.head_sub = rospy.Subscriber("/tactile_touch", HeadTouch, self.headtouch_callback)
         self.bumper_sub = rospy.Subscriber("/bumper", Bumper, self.bumper_callback)
-        self.bumper = None
+        self.bump = None
 
         self.talk_phrases = {
             'draw_cards': [
@@ -96,6 +97,9 @@ class NAOCommunicate:
                             "Let's change the color, shall we?",
                             "I'm feeling wild, let's mix it up!",
                               "Wild times call for wild cards!"
+            ],
+            'opponents_turn' : ["Your turn"
+
             ]
 
 
@@ -148,8 +152,8 @@ class NAOCommunicate:
         # Add words to your vocabulary
         vocab_msg.goal.words.append("hit")
         vocab_msg.goal.words.append("pull")
-        # vocab_msg.goal.words.append("yes")
-        # vocab_msg.goal.words.append("no")
+        vocab_msg.goal.words.append("yes")
+        vocab_msg.goal.words.append("no")
         # word_list = ['RED','GREEN','BLUE','YELLOW','0','1','2','3','4','5','6','7','8','9','Skip','Reverse','Draw2','Draw4','Wild']
         # for i in word_list:
         #     vocab_msg.goal.words.append(i)
@@ -238,5 +242,32 @@ class NAOCommunicate:
             self.speech_pub.publish(talk_msg)
             rospy.sleep(delay)
 
+class NAOVision():
+    def __init__(self,needs_node=False):
+        self.needs_node = needs_node
+        if self.needs_node:
+            rospy.init_node('vision')
+        self.vision_sub = rospy.Subscriber('/nao_vision/detected_objects', String, self.vision_callback, queue_size=10)
+        self.detected_objects = []
+        if self.needs_node:
+            rospy.spin()
+    
 
-
+    def vision_callback(self, msg):
+        # Decode the received string message into a list using JSON
+        # print(msg.data)
+        # print(type(msg.data))
+        self.detected_objects = eval(msg.data)
+        # Process the decoded list as needed
+        if self.needs_node:
+            print("Received detected objects:", self.detected_objects)
+    
+    def get_top_card(self):
+        if self.detected_objects:
+            return self.detected_objects[0]
+        else:
+            return self.detected_objects
+        
+if __name__ == "__main__":
+    print('hello')
+    vision = NAOVision()

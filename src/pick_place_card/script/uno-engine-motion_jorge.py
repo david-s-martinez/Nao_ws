@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import random
 import time
-from move_to_object import MovetoTarget
+from move_to_object import NAOMove
 from naoqi_bridge_msgs.msg import SpeechWithFeedbackActionGoal,WordRecognized
 from naoqi_bridge_msgs.msg import SetSpeechVocabularyActionGoal
 import rospy
@@ -128,7 +128,7 @@ def main():
     nao_hand = NAOHand()
     top_card = None
     nao_talk = NAOCommunicate()
-    nao_move = MovetoTarget(needs_node=False)
+    nao_move = NAOMove(needs_node=False)
     # rospy.spin()
 
     while True:

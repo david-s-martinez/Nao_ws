@@ -50,7 +50,7 @@ def call_disable_body_stiffness_service():
     except rospy.ServiceException as e:
         print("Service call failed:", str(e))
         
-class MovetoTarget(object):
+class NAOMove(object):
 
     def __init__(self, robotIP = "10.152.246.180", PORT = 9559, needs_node=True):
 
@@ -698,4 +698,4 @@ if __name__ == '__main__':
     # PORT=int(sys.argv[2])
     # print sys.argv[2]
  
-    jc = MovetoTarget()
+    jc = NAOMove()

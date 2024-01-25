@@ -98,13 +98,33 @@ class NAOCommunicate:
                             "I'm feeling wild, let's mix it up!",
                               "Wild times call for wild cards!"
             ],
-            'opponents_turn' : ["Your turn"
+            'opponent_draw2' : ["Oh, doubling my fun,arent you",
+                                "Two more, I will take them with grace",
+                                "A pair of gifts from you"
 
-            ]
+            ],
 
+            'opponent_draw4' : ["You are giving me four more, you are too kind",
+                                "Four extra cards, I will turn them into victory",
+                                "Quadrupling my chances, I see",
 
+            ],
+             'opponent_reverse' : ["Reversing the flow, huh? You must be hoping luck goes the other way too!",
+                                "Nice try with the reverse. But in the end, it's still your turn to suffer!",
+                                "Reversing the game won't reverse your fate in this round!"
 
+            ],'opponent_skip' : ["Oh, a skip card? Trying to give yourself a break from my Uno domination, I see.",
+                                 "Skipping my turn won't save you. I'll be back with a vengeance!",
+                                 "Skipping me? You're just delaying the inevitable victory dance!"
 
+            ], 'opponent_wild' : ["Oh, going for the wild move, are we? Feeling a bit unpredictable today?",
+                                    "Nice choice with the wild card. Trying to keep me on my toes, huh?",
+                                    "A wild card, really? You're just delaying the inevitable, my friend."
+
+            ],
+
+            
+            
         }
         # self.recog_stop_srv = rospy.ServiceProxy("/stop_recognition", Empty)
         self.recognized_words = []

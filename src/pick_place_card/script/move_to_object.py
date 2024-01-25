@@ -316,109 +316,82 @@ class NAOMove(object):
             print("Move to Target failed")
             return False
         
-    def move_yaxis(self, cX, cY):
-        try: 
-            # if cX < 265 and cY < 45:
-            #     self.nao_walk(x= 0.0, y = -0.01, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.nao_walk(x= 0.01, y = 0.0, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            #     corrected_y = False
+    def move_xyaxis(self, current_pose, desired_pose):
+        try:
 
-            # elif cX > 275 and cY > 55:
-            #     self.nao_walk(x= 0.0, y = 0.01, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.nao_walk(x= -0.01, y = 0.0, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            #     corrected_y = False
+            aruco_params = cv2.aruco.DetectorParameters_create()
 
-            # elif cX > 275 and cY < 45:
-            #     self.nao_walk(x= 0.0, y = -0.01, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.nao_walk(x= -0.01, y = 0.0, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            #     corrected_y = False   
+            # Create a ROS2 node and a Stretch robot object
+            self.postureProxy.goToPosture("StandInit", 1)
 
-            # elif cX < 265 and cY > 55:
-            #     self.nao_walk(x= 0.0, y = 0.01, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.nao_walk(x= 0.01, y = 0.0, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            #     corrected_y = False 
+            # Define the error threshold and the control gains
+            error_threshold = 0.1
+            kp = 0.1
+            ki = 0.01
+            kd = 0.01
 
-            # elif cX < 265:
-            #     self.nao_walk(x= 0.0, y = 0.01, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            # elif cX > 275:
-            #     self.nao_walk(x= 0.0, y = -0.01, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            # elif cY > 55:
-            #     self.nao_walk(x= -0.01, y = 0.0, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            #     corrected_y = False
-            # elif cY < 45:
-            #     self.nao_walk(x= 0.01, y = 0.0, theta = 0.0)
-            #     rospy.sleep(1)
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            #     corrected_y = False
-            # else: 
-            #     self.postureProxy.goToPosture("StandInit", 1)
-            #     corrected_y = True
+            # Initialize the error and the integral terms
+            error = np.inf
+            integral = 0
+
+
+            # Calculate PID control output
+            error = desired_pose - current_pose
+            integral += error
+            # derivative = error - previous_error
+
+            # Calculate control command
+            control_command = kp * error + ki * integral
+
+            x = control_command[0, 3]
+            y = control_command[1, 3]
+
+            # Get the rotation value from the 3x3 submatrix of the error matrix
+            rotation_matrix = control_command[:3, :3]
+            rotation_vector, _ = cv2.Rodrigues(rotation_matrix)
+            theta = np.linalg.norm(rotation_vector)
+
+            self.nao_walk(x , y , theta)
+
+            # Update previous error for the next iteration
+            # previous_error = error
+
+            # Loop until the error is below the threshold
+            if np.linalg.norm(error) > error_threshold:
+
+                return False
             
-            # return corrected_y
+            else:
+                self.postureProxy.goToPosture("StandInit", 1)   
+                # Print a message when the alignment is done
+                print("Alignment completed")
 
-            #Based on NAO documentation 
-            image_xcenter = 640 / 2.0
-            image_ycenter = 480 / 2.0
-
-
-            #Calculate the displacement between the centroid of the ArUco and the center of the image
-            dx =  image_xcenter - cX
-            dy = cY - image_ycenter 
-            print(dx,dy)
-
-            # Find the angle using the horizontal and vertical fov mapping (Nao's documentation)
-
-            yaw_angle = (dx/640 ) * 60.9
-            pitch_angle = (dy / 480 ) * 47.6
-            names = [ 'HeadYaw', 'HeadPitch']
-            angles = [yaw_angle*almath.TO_RAD, pitch_angle*almath.TO_RAD]
-            fractionMaxSpeed = 0.1
-            self.motionProxy.setAngles(names, angles, fractionMaxSpeed)
-
-            
-
+                return True
+        
         except Exception as e:
             print(e)
             print("Move to Target failed")
             return False
 
-    def move_xaxis(self, cY):
-        try: 
-            if cY < 45:
-                self.nao_walk(x= 0.01, y = 0.0 , theta = 0.0)
-                corrected_x = False
+    # def move_xaxis(self, cY):
+    #     try: 
+    #         if cY < 45:
+    #             self.nao_walk(x= 0.01, y = 0.0 , theta = 0.0)
+    #             corrected_x = False
 
-            elif cY > 55:
-                self.nao_walk(x= -0.01, y = 0.0 , theta = 0.0)
-                corrected_x = False
-            else: 
-                self.postureProxy.goToPosture("StandInit", 1)
-                corrected_x = True
+    #         elif cY > 55:
+    #             self.nao_walk(x= -0.01, y = 0.0 , theta = 0.0)
+    #             corrected_x = False
+    #         else: 
+    #             self.postureProxy.goToPosture("StandInit", 1)
+    #             corrected_x = True
             
-            return corrected_x
+    #         return corrected_x
 
-        except Exception as e:
-            print(e)
-            print("Move to Target failed")
-            return False
+    #     except Exception as e:
+    #         print(e)
+    #         print("Move to Target failed")
+    #         return False
         
         
     def throw_card(self):
@@ -597,6 +570,7 @@ class NAOMove(object):
             # print(current_pose)
 
             # self.nao_walk(x= dx*0.001, y = dy*0.001, theta = 0.0)
+            # self.move_xyaxis(current_pose, desired_matrix)
         else:
             #Consecutive Iteration with no aruco model 
             if self.current_state:

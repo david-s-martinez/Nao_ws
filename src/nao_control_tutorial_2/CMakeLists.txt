@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
 )
 
+
 add_service_files(
     DIRECTORY srv
     FILES

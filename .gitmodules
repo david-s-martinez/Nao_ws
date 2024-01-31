@@ -1,0 +1,7 @@
+[submodule "UNO_Card_Data_Pipeline"]
+	path = UNO_Card_Data_Pipeline
+	url = https://github.com/davidmartinez13/UNO_Card_Data_Pipeline
+
+[submodule "mmdetection"]
+	path = mmdetection
+	url = https://github.com/davidmartinez13/UNO_Card_Data_Pipeline

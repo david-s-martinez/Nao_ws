@@ -3,3 +3,4 @@ devel/
 logs/
 .catkin_tools/
 .DS_store
+*.pyc

@@ -1,5 +1,5 @@
 # NAO U NO
-![.](https://github.com/davidmartinez13/Nao_ws/Screenshots/NAO_UNO.png)
+![.](https://github.com/davidmartinez13/Nao_ws/blob/main/Screenshots/NAO_UNO.png)
 This repository contains code for integrating a NAO robot into an UNO card game environment using ROS (Robot Operating System). The system enables the robot to recognize UNO cards and interact with the game accordingly.
 # How to run this code:
 1. Clone the repository to your local machine:

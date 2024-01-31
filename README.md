@@ -1,5 +1,5 @@
 # NAO U NO
-
+![.](https://github.com/davidmartinez13/Nao_ws/Screenshots/NAO_UNO.png)
 This repository contains code for integrating a NAO robot into an UNO card game environment using ROS (Robot Operating System). The system enables the robot to recognize UNO cards and interact with the game accordingly.
 # How to run this code:
 1. Clone the repository to your local machine:
@@ -32,7 +32,7 @@ This repository contains code for integrating a NAO robot into an UNO card game 
      ```
      cd mmdetection
      ```
-   - Run the card detection script. Adjust paths for model weights if necessary:
+   - Run the card detection script. The weights can be downloaded from [here](https://drive.google.com/file/d/1Wq8c8nYg18KqsWm90MILd3BvicDumCY_/view?usp=drive_link): .Adjust paths for model weights if necessary:
      ```
      python3 demo/nao_card_detection.py /configs/yolox/yolox_s_8xb8-300e_coco_UNO.py /work_dirs/yolox_s_8xb8-300e_coco_UNO/20240124_013947/epoch_50.pth
      ```
